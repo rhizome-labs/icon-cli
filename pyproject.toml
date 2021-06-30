@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "icon-cli"
+version = "0.1.0"
+description = ""
+authors = ["Brian Li <brian@brianli.com>"]
+
+[tool.poetry.scripts]
+icon-cli = "icon_cli.main:app"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+iconsdk = {extras = ["all"], version = "^1.3.4"}
+rich = {extras = ["all"], version = "^10.4.0"}
+PyYAML = "^5.4.1"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
