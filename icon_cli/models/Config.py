@@ -41,7 +41,6 @@ class Config:
     iiss_contract = "cx0000000000000000000000000000000000000000"
 
     def __init__(self) -> None:
-        print("CONFIG")
         pass
 
     @classmethod

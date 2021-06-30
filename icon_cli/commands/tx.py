@@ -27,7 +27,7 @@ def send(
         callback=Callbacks.load_wallet_from_keystore,
     ),
     network: str = typer.Option(Config.get_default_network(), "--network", "-n"),
-    simulate: bool = typer.Option(False, "--simulate", "-s"),
+    simulation: bool = typer.Option(False, "--simulate", "-s"),
     confirmation: bool = typer.Option(True, "--confirm", "-c"),
 ):
     icx = Icx(network)
@@ -36,14 +36,14 @@ def send(
         transaction = icx.build_transaction(keystore, to, value)
     elif type == "call_transaction":
         if not method:
-            print("Please provide a valid method.")
+            print("Please specify a contract method.")
             raise typer.Exit()
         if to[:2] != "cx":
-            print(f"Sorry, you can't make a contract call to {to}.")
+            print(f"{to} is not a valid ICX contract address.")
             raise typer.Exit()
         transaction = icx.build_call_transaction(keystore, to, method, params)
 
-    if simulate:
+    if simulation:
         print_json(transaction.__dict__)
     else:
         if confirmation:
