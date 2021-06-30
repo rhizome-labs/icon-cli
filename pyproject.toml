@@ -8,7 +8,7 @@ authors = ["Brian Li <brian@brianli.com>"]
 icon-cli = "icon_cli.main:app"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.8"
 iconsdk = {extras = ["all"], version = "^1.3.4"}
 rich = {extras = ["all"], version = "^10.4.0"}
 PyYAML = "^5.4.1"
