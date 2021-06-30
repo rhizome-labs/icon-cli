@@ -2,6 +2,7 @@ import hashlib
 import io
 import json
 import os
+import requests
 import shutil
 import typer
 import yaml
@@ -119,7 +120,7 @@ class Config:
             raise typer.Exit()
 
     ##############################
-    # INTERNAL UTILITY FUNCTIONS #
+    # EXTERNAL UTILITY FUNCTIONS #
     ##############################
 
     @classmethod
@@ -132,6 +133,14 @@ class Config:
         else:
             print("There are no imported keystores.")
             raise typer.Exit()
+
+    @staticmethod
+    def ping():
+        requests.head("https://icon-cli-analytics.rhizome.workers.dev", timeout=1)
+
+    ##############################
+    # INTERNAL UTILITY FUNCTIONS #
+    ##############################
 
     @staticmethod
     def _copy_file(source, destination) -> None:

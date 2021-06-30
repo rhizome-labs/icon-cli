@@ -23,9 +23,10 @@ from time import sleep
 class Icx:
     def __init__(self, network) -> None:
 
+        self.network = network
         self.api_version = 3
-        self.icon_service, self.nid = self._get_icon_service(network)
-        self.tracker_endpoint = self._get_tracker_url(network)
+        self.icon_service, self.nid = self._get_icon_service(self.network)
+        self.tracker_endpoint = self._get_tracker_url(self.network)
 
     ###################
     # CALL PRIMITIVES #

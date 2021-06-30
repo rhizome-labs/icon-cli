@@ -19,7 +19,7 @@ def send(
     value: int = typer.Argument(...),
     type: str = typer.Option("transaction", "--type", "-t"),
     method: str = typer.Option(None, "--method", "-m"),
-    params: dict = typer.Option(None, "--params", "-p"),
+    params: str = typer.Option(None, "--params", "-p"),
     keystore: str = typer.Option(
         Config.get_default_keystore(),
         "--keystore",
