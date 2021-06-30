@@ -17,12 +17,12 @@ class Config:
     history_dir_path = f"{config_dir_path}/history"
 
     default_config = {
-        "defaultKeystore": None,
-        "defaultNetwork": "mainnet",
-        "customEndpoints": {},
-        "keystores": {},
-        "queryOnly": False,
-        "savedAddresses": {},
+        "custom_endpoints": [],
+        "default_keystore": None,
+        "default_network": "mainnet",
+        "keystores": [],
+        "query_only": False,
+        "saved_addresses": [],
     }
 
     default_networks = {
@@ -30,6 +30,14 @@ class Config:
         "euljiro": ["https://test-ctz.solidwallet.io", 2],
         "yeouido": ["https://bicon.net.solidwallet.io", 3],
         "local": ["http://localhost:9000", 3],
+    }
+
+    icx_governance_contract = "cx0000000000000000000000000000000000000001"
+    iiss_contract = "cx0000000000000000000000000000000000000000"
+
+    irc2_token_tickers = {
+        "BALN": "cxf61cd5a45dc9f91c15aa65831a30a90d59a09619",
+        "TAP": "cxc0b5b52c9f8b4251a47e91dda3bd61e5512cd782",
     }
 
     def __init__(self) -> None:
