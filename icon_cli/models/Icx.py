@@ -18,7 +18,6 @@ from time import sleep
 
 class Icx(Config):
     def __init__(self, network) -> None:
-
         super().__init__()
 
         self.api_version = 3
@@ -78,7 +77,6 @@ class Icx(Config):
     ##########################
 
     def build_transaction(self, wallet, to, value):
-        print(wallet)
         try:
             transaction = (
                 TransactionBuilder()
@@ -89,7 +87,6 @@ class Icx(Config):
                 .nonce(self._generate_nonce())
                 .build()
             )
-            print(transaction)
             return transaction
         except Exception as e:
             print(e)

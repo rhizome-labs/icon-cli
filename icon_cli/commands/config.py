@@ -1,6 +1,7 @@
 import typer
 from icon_cli.models.Config import Config
 from icon_cli.commands.subcommands.config import keystore
+from icon_cli.utils import print_json
 from rich import print
 
 app = typer.Typer()
@@ -16,4 +17,4 @@ def debug():
 @app.command()
 def inspect():
     config = Config()
-    print(config.inspect_config())
+    print_json(config.inspect_config())

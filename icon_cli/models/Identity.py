@@ -1,4 +1,6 @@
+import os
 import typer
+from dotenv import load_dotenv
 from getpass import getpass
 from iconsdk.exception import KeyStoreException
 from iconsdk.wallet.wallet import KeyWallet
@@ -6,21 +8,20 @@ from icon_cli.models.Config import Config
 
 
 class Identity(Config):
-
-    config = Config()
-
     def __init__(self) -> None:
         super().__init__()
 
     def load_wallet(self, keystore: str):
         try:
+            load_dotenv()
             keystore_metadata = self.get_keystore_metadata(keystore)
-            print(keystore_metadata)
             keystore_filename = keystore_metadata["keystore_filename"]
-            print(keystore_filename)
-            # wallet_password = getpass("Keystore Password: ")
-            wallet_password = "alskALSK123~~"
-            wallet = KeyWallet.load(f"{self.keystore_dir_path}/{keystore_filename}", wallet_password)
+            keystore_name = keystore_metadata["keystore_name"]
+            if os.getenv(keystore_name.upper()) is not None:
+                wallet_password = os.getenv(keystore_name.upper())
+            else:
+                wallet_password = getpass("Keystore Password: ")
+            wallet = KeyWallet.load(f"{self.keystore_dir}/{keystore_filename}", wallet_password)
             return wallet
         except KeyStoreException:
             print("Sorry, the password you supplied is incorrect.")
@@ -29,10 +30,9 @@ class Identity(Config):
             print(e)
             raise typer.Exit()
 
-    @classmethod
-    def get_wallet_address(cls, keystore: str):
+    def get_wallet_address(self, keystore: str):
         try:
-            wallet_address = cls.get_keystore_metadata(keystore)["keystoreAddress"]
+            wallet_address = self.get_keystore_metadata(keystore)["keystoreAddress"]
             return wallet_address
         except Exception as e:
             print(e)

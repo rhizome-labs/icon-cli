@@ -1,28 +1,29 @@
 import typer
-from icon_cli.models.Callbacks import Callbacks
 from icon_cli.models.Config import Config
 from icon_cli.models.Icx import Icx
+from icon_cli.models.Identity import Identity
+from icon_cli.utils import print_json
+from rich import print
 
 app = typer.Typer()
 
-callbacks = Callbacks()
 config = Config()
+identity = Identity()
 
 
 @app.command()
 def debug():
-    typer.echo(__name__)
+    print(__name__)
 
 
 @app.command()
-def send(
+def build(
     to: str = typer.Argument(...),
-    value: str = typer.Argument(...),
-    wallet: str = typer.Option(
-        config.get_default_keystore(), "--keystore", "-k", callback=callbacks.convert_keystore_to_wallet
-    ),
-    network: str = typer.Option(config.get_default_network(), "--network", "-in"),
+    value: int = typer.Argument(...),
+    keystore: str = typer.Option(config.get_default_keystore(), "--keystore", "-k"),
+    network: str = typer.Option(config.get_default_network(), "--network", "-n"),
 ):
     icx = Icx(network)
+    wallet = identity.load_wallet(keystore)
     transaction = icx.build_transaction(wallet, to, value)
-    # print(transaction)
+    print_json(transaction.__dict__)

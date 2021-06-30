@@ -13,10 +13,12 @@ iconsdk = {extras = ["all"], version = "^1.3.4"}
 rich = {extras = ["all"], version = "^10.4.0"}
 PyYAML = "^5.4.1"
 typer = "^0.3.2"
+python-dotenv = "^0.18.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
 black = {extras = ["all"], version = "^21.6b0"}
+flake8 = "^3.9.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
