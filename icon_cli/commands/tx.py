@@ -1,14 +1,11 @@
 import typer
+from icon_cli.models.Callbacks import Callbacks
 from icon_cli.models.Config import Config
 from icon_cli.models.Icx import Icx
-from icon_cli.models.Identity import Identity
 from icon_cli.utils import print_json
 from rich import print
 
 app = typer.Typer()
-
-config = Config()
-identity = Identity()
 
 
 @app.command()
@@ -17,13 +14,42 @@ def debug():
 
 
 @app.command()
-def build(
+def send(
     to: str = typer.Argument(...),
     value: int = typer.Argument(...),
-    keystore: str = typer.Option(config.get_default_keystore(), "--keystore", "-k"),
-    network: str = typer.Option(config.get_default_network(), "--network", "-n"),
+    type: str = typer.Option("transaction", "--type", "-t"),
+    method: str = typer.Option(None, "--method", "-m"),
+    params: dict = typer.Option(None, "--params", "-p"),
+    keystore: str = typer.Option(
+        Config.get_default_keystore(),
+        "--keystore",
+        "-k",
+        callback=Callbacks.load_wallet_from_keystore,
+    ),
+    network: str = typer.Option(Config.get_default_network(), "--network", "-n"),
+    simulate: bool = typer.Option(False, "--simulate", "-s"),
+    confirmation: bool = typer.Option(True, "--confirm", "-c"),
 ):
     icx = Icx(network)
-    wallet = identity.load_wallet(keystore)
-    transaction = icx.build_transaction(wallet, to, value)
-    print_json(transaction.__dict__)
+
+    if type == "transaction":
+        transaction = icx.build_transaction(keystore, to, value)
+    elif type == "call_transaction":
+        if not method:
+            print("Please provide a valid method.")
+            raise typer.Exit()
+        if to[:2] != "cx":
+            print(f"Sorry, you can't make a contract call to {to}.")
+            raise typer.Exit()
+        transaction = icx.build_call_transaction(keystore, to, method, params)
+
+    if simulate:
+        print_json(transaction.__dict__)
+    else:
+        if confirmation:
+            prompt = typer.confirm("Please confirm transaction details.")
+            if not prompt:
+                print("Exiting now...")
+                raise typer.Exit()
+        transaction_result = icx.send_transaction(keystore, transaction)
+        print(transaction_result)

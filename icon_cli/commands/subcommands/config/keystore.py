@@ -4,8 +4,6 @@ from icon_cli.utils import print_json
 
 app = typer.Typer()
 
-config = Config()
-
 
 @app.command()
 def debug():
@@ -14,7 +12,7 @@ def debug():
 
 @app.command()
 def inspect(
-    keystore_name=typer.Argument(config.get_default_keystore()),
+    keystore_name=typer.Argument(Config.get_default_keystore()),
     all: bool = typer.Option(False, "--all", "-a"),
     format: str = typer.Option(None, "--format", "-f"),
 ):
@@ -23,7 +21,7 @@ def inspect(
     """
 
     if all is True:
-        imported_keystores = config.get_imported_keystores()
+        imported_keystores = Config.get_imported_keystores()
         if format == "json":
             print_json(imported_keystores)
         else:
@@ -34,7 +32,7 @@ def inspect(
                     f"Keystore Filename: {keystore['keystore_filename']}"
                 )
     else:
-        keystore_metadata = config.get_keystore_metadata(keystore_name)
+        keystore_metadata = Config.get_keystore_metadata(keystore_name)
         if format == "json":
             print_json(keystore_metadata)
         else:

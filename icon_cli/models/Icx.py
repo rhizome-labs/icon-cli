@@ -1,6 +1,6 @@
+import os
 import requests
 import typer
-from icon_cli.models.Config import Config
 from iconsdk.builder.call_builder import CallBuilder
 from iconsdk.builder.transaction_builder import (
     CallTransactionBuilder,
@@ -8,17 +8,20 @@ from iconsdk.builder.transaction_builder import (
     MessageTransactionBuilder,
     TransactionBuilder,
 )
-from iconsdk.exception import JSONRPCException
+from iconsdk.exception import JSONRPCException, KeyStoreException
 from iconsdk.icon_service import IconService
+from iconsdk.wallet.wallet import KeyWallet
 from iconsdk.providers.http_provider import HTTPProvider
 from iconsdk.signed_transaction import SignedTransaction
+from icon_cli.models.Config import Config
+from dotenv import load_dotenv
+from getpass import getpass
 from random import randint
 from time import sleep
 
 
-class Icx(Config):
+class Icx:
     def __init__(self, network) -> None:
-        super().__init__()
 
         self.api_version = 3
         self.icon_service, self.nid = self._get_icon_service(network)
@@ -50,7 +53,7 @@ class Icx(Config):
         return block
 
     def query_token_balance(self, address, ticker: str):
-        tickers = self.irc2_token_tickers
+        tickers = Config.irc2_token_tickers
         contract_address = tickers[ticker.upper()]
         token_balance = self.call(contract_address, "balanceOf", {"_owner": address})
         return int(token_balance, 16) / 10 ** 18
@@ -154,6 +157,29 @@ class Icx(Config):
             print(e)
             raise typer.Exit()
 
+    ####################
+    # WALLET FUNCTIONS #
+    ####################
+
+    def load_wallet(self, keystore: str):
+        try:
+            load_dotenv()
+            keystore_metadata = Config.get_keystore_metadata(keystore)
+            keystore_filename = keystore_metadata["keystore_filename"]
+            keystore_name = keystore_metadata["keystore_name"]
+            if os.getenv(keystore_name.upper()) is not None:
+                wallet_password = os.getenv(keystore_name.upper())
+            else:
+                wallet_password = getpass("Keystore Password: ")
+            wallet = KeyWallet.load(f"{Config.keystore_dir}/{keystore_filename}", wallet_password)
+            return wallet
+        except KeyStoreException:
+            print("Sorry, the password you supplied is incorrect.")
+            raise typer.Exit()
+        except Exception as e:
+            print(e)
+            raise typer.Exit()
+
     ##############################
     # INTERNAL UTILITY FUNCTIONS #
     ##############################
@@ -163,7 +189,7 @@ class Icx(Config):
         return nonce
 
     def _get_icon_service(self, network: str):
-        default_networks = self.get_default_networks()
+        default_networks = Config.get_default_networks()
         endpoint_hostname, nid = default_networks.get(network)
         return (
             IconService(HTTPProvider(endpoint_hostname, self.api_version)),

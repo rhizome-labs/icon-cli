@@ -40,6 +40,10 @@ class Config:
     icx_governance_contract = "cx0000000000000000000000000000000000000001"
     iiss_contract = "cx0000000000000000000000000000000000000000"
 
+    def __init__(self) -> None:
+        print("CONFIG")
+        pass
+
     @classmethod
     def initialize_config(cls) -> None:
 
@@ -119,6 +123,17 @@ class Config:
     # INTERNAL UTILITY FUNCTIONS #
     ##############################
 
+    @classmethod
+    def list_imported_keystore_names(cls):
+        config = cls._read_config()
+        imported_keystores = config["keystores"]
+        if len(imported_keystores) > 0:
+            keystore_names = [keystore["keystore_name"] for keystore in imported_keystores]
+            return keystore_names
+        else:
+            print("There are no imported keystores.")
+            raise typer.Exit()
+
     @staticmethod
     def _copy_file(source, destination) -> None:
         shutil.copyfile(source, destination)
@@ -135,17 +150,6 @@ class Config:
     def _list_config_keys(cls) -> str:
         keys = list(cls.default_config.keys())
         return ", and ".join([", ".join(keys[:-1]), keys[-1]])
-
-    @classmethod
-    def _list_imported_keystore_names(cls):
-        config = cls._read_config()
-        imported_keystores = config["keystores"]
-        if len(imported_keystores) > 0:
-            keystore_names = [keystore["keystore_name"] for keystore in imported_keystores]
-            return keystore_names
-        else:
-            print("There are no imported keystores.")
-            raise typer.Exit()
 
     @classmethod
     def _read_config(cls) -> dict:

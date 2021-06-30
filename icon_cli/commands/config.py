@@ -16,5 +16,4 @@ def debug():
 
 @app.command()
 def inspect():
-    config = Config()
-    print_json(config.inspect_config())
+    print_json(Config.inspect_config())
