@@ -16,6 +16,7 @@ typer = "^0.3.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
+black = {extras = ["all"], version = "^21.6b0"}
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
