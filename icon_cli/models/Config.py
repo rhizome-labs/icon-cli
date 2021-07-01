@@ -186,7 +186,5 @@ class Config:
         with io.open(keystore_path, "r", encoding="utf-8-sig") as keystore_file:
             keystore_json = json.load(keystore_file)
             keystore_address = keystore_json["address"]
-        keystore_hash = hashlib.md5(
-            open("/Users/brianli/Desktop/testnet-keystore", "rb").read()
-        ).hexdigest()
+        keystore_hash = hashlib.md5(open("/Users/brianli/Desktop/testnet-keystore", "rb").read()).hexdigest()
         return keystore_json, keystore_address, keystore_hash

@@ -28,6 +28,8 @@ class Icx:
         self.icon_service, self.nid = self._get_icon_service(self.network)
         self.tracker_endpoint = self._get_tracker_url(self.network)
 
+        # print(self)
+
     ###################
     # CALL PRIMITIVES #
     ###################
