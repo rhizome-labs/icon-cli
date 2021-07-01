@@ -1,18 +1,18 @@
+import requests
 import typer
 from icon_cli.models.Icx import Icx
 from rich import print
 
 
-class Preps(Icx):
+class Prep(Icx):
 
     GOVERNANCE_CONTRACT = "cx0000000000000000000000000000000000000000"
 
     def __init__(self, network) -> None:
         super().__init__(network)
 
-    @classmethod
-    def query_prep_by_name(cls, name):
-        preps = cls.call(cls.GOVERNANCE_CONTRACT, "getPReps", None)["preps"]
+    def query_prep_by_name(self, name):
+        preps = self.call(self.GOVERNANCE_CONTRACT, "getPReps", None)["preps"]
         prep_map = {}
         for prep in preps:
             prep_map[prep["name"]] = prep
@@ -23,19 +23,31 @@ class Preps(Icx):
                 print(f"Oops, there are no P-Reps named {name}.")
                 raise typer.Exit()
 
-    @classmethod
-    def query_prep_by_address(cls, address):
-        prep = cls.call(cls.GOVERNANCE_CONTRACT, "getPRep", {"address": address})
+    def query_prep_by_address(self, address):
+        prep = self.call(self.GOVERNANCE_CONTRACT, "getPRep", {"address": address})
         return prep
 
-    @classmethod
-    def query_preps(cls, range_start, range_end):
-        preps = cls.call(
-            cls.GOVERNANCE_CONTRACT,
+    def query_preps(self, range_start, range_end):
+        preps = self.call(
+            self.GOVERNANCE_CONTRACT,
             "getPReps",
             {"startRanking": range_start, "endRanking": range_end},
         )["preps"]
         return preps
+
+    ##############################
+    # EXTERNAL UTILITY FUNCTIONS #
+    ##############################
+
+    @staticmethod
+    def query_prep_count():
+        try:
+            r = requests.get("https://tracker.icon.foundation/v3/iiss/prep/list?count=500", timeout=0.5)
+            r.raise_for_status()
+            prep_count = r.json()["totalSize"]
+        except Exception:
+            prep_count = 100
+        return prep_count
 
     ##############################
     # INTERNAL UTILITY FUNCTIONS #
@@ -55,3 +67,7 @@ class Preps(Icx):
                 return value
             else:
                 return name
+
+    @staticmethod
+    def _format_prep_json_response(prep: dict):
+        pass
