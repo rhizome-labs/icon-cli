@@ -18,7 +18,6 @@ def debug():
 
 @app.command()
 def send(
-    to: str = typer.Argument(..., callback=Callbacks.validate_icx_address),
     value: int = typer.Argument(..., callback=Callbacks.validate_transaction_value),
     type: str = typer.Option("transaction", "--type", "-t", callback=Callbacks.validate_transaction_type),
     method: str = typer.Option(None, "--method", "-m"),

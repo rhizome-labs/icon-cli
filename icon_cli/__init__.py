@@ -9,7 +9,7 @@ __version__ = "0.1.0"
 load_dotenv()
 
 # Configure debug logger.
-if os.environ["ENV"] == "DEV":
+if os.getenv("ENV") == "DEBUG":
     log_level = "DEBUG"
 else:
     log_level = "ERROR"

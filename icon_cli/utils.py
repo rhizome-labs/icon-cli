@@ -1,5 +1,8 @@
 import json
 import typer
+from dotenv import load_dotenv
+from icon_cli.models.Config import Config
+from pathlib import Path
 from rich import inspect, print
 from rich.console import Console
 
@@ -24,6 +27,10 @@ def hex_to_int(input, exa=None):
     else:
         result = int(input, 16) / 10 ** exa
     return result
+
+
+def load_env_var():
+    load_dotenv(dotenv_path=Path(Config.env_file))
 
 
 def print_json(input):
