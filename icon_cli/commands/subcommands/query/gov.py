@@ -44,8 +44,10 @@ def preps(
 
 @app.command()
 def delegation(
-    address: str = typer.Option(None, "--address", "-a"),
-    keystore: str = typer.Option(Config.get_default_keystore(), "--keystore", "-k"),
+    address: str = typer.Option(None, "--address", "-a", callback=Callbacks.validate_icx_address),
+    keystore: str = typer.Option(
+        Config.get_default_keystore(), "--keystore", "-k", callback=Callbacks.validate_keystore_name
+    ),
     network: str = typer.Option(Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
