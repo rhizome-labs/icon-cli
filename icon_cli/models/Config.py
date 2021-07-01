@@ -49,7 +49,7 @@ class Config:
 
         if not os.path.exists(cls.config_file):
             print(f"Creating config file at {cls.config_file} now...")
-            with open(cls.config_file, "w", encoding="utf-8") as config_file:
+            with open(cls.config_file, "w+", encoding="utf-8") as config_file:
                 yaml.dump(cls.default_config, config_file, sort_keys=True)
                 print(f"Config file has been successfully created at {cls.config_file}.")
 

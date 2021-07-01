@@ -14,6 +14,11 @@ def debug():
 
 
 @app.command()
+def distribute():
+    pass
+
+
+@app.command()
 def liquidate(
     address: str = typer.Argument(..., callback=Callbacks.validate_icx_address),
     wallet: str = typer.Option(

@@ -1,10 +1,13 @@
 import json
+import logging
+import os
 import typer
 from dotenv import load_dotenv
-from icon_cli.models.Config import Config
-from pathlib import Path
 from rich import inspect, print
+from rich.logging import RichHandler
 from rich.console import Console
+
+load_dotenv()
 
 
 def enforce_mainnet(network):
@@ -29,8 +32,14 @@ def hex_to_int(input, exa=None):
     return result
 
 
-def load_env_var():
-    load_dotenv(dotenv_path=Path(Config.env_file))
+def log(message):
+    if os.getenv("ENV") == "DEBUG":
+        log_level = "DEBUG"
+    else:
+        log_level = "ERROR"
+    logging.basicConfig(level=log_level, format="%(message)s", datefmt="[%X]", handlers=[RichHandler()])
+    log = logging.getLogger("rich")
+    log.debug(message)
 
 
 def print_json(input):

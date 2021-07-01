@@ -1,18 +1,4 @@
-import logging
-import os
-from dotenv import load_dotenv
-from rich.logging import RichHandler
+from icon_cli.models.Config import Config
 
-__version__ = "0.1.0"
-
-# Load environment variables.
-load_dotenv()
-
-# Configure debug logger.
-if os.getenv("ENV") == "DEBUG":
-    log_level = "DEBUG"
-else:
-    log_level = "ERROR"
-
-logging.basicConfig(level=log_level, format="%(message)s", datefmt="[%X]", handlers=[RichHandler()])
-log = logging.getLogger("rich")
+Config.initialize_config()
+Config.ping()
