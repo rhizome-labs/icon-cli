@@ -15,9 +15,9 @@ def debug():
 
 @app.command()
 def send(
-    to: str = typer.Argument(...),
-    value: int = typer.Argument(...),
-    type: str = typer.Option("transaction", "--type", "-t"),
+    to: str = typer.Argument(..., callback=Callbacks.validate_icx_address),
+    value: int = typer.Argument(..., callback=Callbacks.validate_transaction_value),
+    type: str = typer.Option("transaction", "--type", "-t", callback=Callbacks.validate_transaction_type),
     method: str = typer.Option(None, "--method", "-m"),
     params: str = typer.Option(None, "--params", "-p"),
     keystore: str = typer.Option(
@@ -26,7 +26,7 @@ def send(
         "-k",
         callback=Callbacks.load_wallet_from_keystore,
     ),
-    network: str = typer.Option(Config.get_default_network(), "--network", "-n"),
+    network: str = typer.Option(Config.get_default_network(), "--network", "-n", callback=Callbacks.validate_network),
     simulation: bool = typer.Option(False, "--simulate", "-s"),
     confirmation: bool = typer.Option(True, "--confirm", "-c"),
 ):

@@ -93,3 +93,23 @@ class Callbacks:
         if format != "json":
             format = "default"
         return format
+
+    @staticmethod
+    def validate_transaction_type(transaction_type):
+        valid_transaction_types = [
+            "call_transaction",
+            "transaction",
+        ]
+        if transaction_type in valid_transaction_types:
+            return transaction_type
+        else:
+            print(f"Sorry, {transaction_type} is not a valid transaction type.")
+            raise typer.Exit()
+
+    @staticmethod
+    def validate_transaction_value(transaction_value):
+        if transaction_value >= 0:
+            return transaction_value
+        else:
+            print(f"Sorry, {transaction_value} is invalid. The minimum transaction value is 0.")
+            raise typer.Exit()
