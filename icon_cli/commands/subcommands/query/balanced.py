@@ -1,4 +1,5 @@
 import typer
+from datetime import datetime
 from icon_cli.models.Balanced import Balanced
 from icon_cli.models.Callbacks import Callbacks
 from icon_cli.models.Config import Config
@@ -28,7 +29,37 @@ def position(
     if format == "json":
         print_json(position)
     else:
-        print(position)
+        table = Table(
+            box=box.DOUBLE,
+            show_lines=True,
+            show_header=False,
+            title="Balanced Position Details",
+            title_justify="left",
+            title_style="bold",
+        )
+
+        table.add_column("Key", justify="left", style="bold")
+        table.add_column("Value", justify="left")
+
+        created_at = (
+            datetime.fromtimestamp(position["created"] / 1000000).astimezone().replace(microsecond=0).isoformat()
+        )
+
+        assets = [f"{format_number_display(amount, 0, 4)} {ticker}" for ticker, amount in position["assets"].items()]
+
+        table.add_row("ADDRESS", position["address"])
+        table.add_row("STANDING", position["standing"])
+        table.add_row("POSITION ID", format_number_display(position["pos_id"], 0, 0))
+        table.add_row("CREATED", str(created_at))
+        table.add_row("RATIO", format_number_display(position["ratio"]))
+        table.add_row("TOTAL_DEBT", format_number_display(position["total_debt"]))
+        table.add_row("COLLATERAL", format_number_display(position["collateral"]))
+        table.add_row("ASSETS", ", ".join(assets))
+        table.add_row("SNAPSHOT ID", str(position["snap_id"]))
+        table.add_row("SNAPSHOT LENGTH", str(position["snaps_length"]))
+        table.add_row("FIRST DAY", str(position["first day"]))
+
+        print_table(table)
 
 
 @app.command()
@@ -50,11 +81,10 @@ def position_count(
 def positions(
     index_start: int = typer.Option(1, "--start", "-s"),
     index_end: int = typer.Option(None, "--end", "-e"),
-    min_collateralization: int = typer.Option(150, "--min-collateralization", "-min"),  # noqa 503
-    max_collateralization: int = typer.Option(300, "--max-collateralization", "-max"),  # noqa 503
+    min_collateralization: int = typer.Option(150, "--min-collateralization", "-min"),
+    max_collateralization: int = typer.Option(300, "--max-collateralization", "-max"),
     sort_key: str = typer.Option(None, "--sort", "-k"),
     reverse: bool = typer.Option(False, "--reverse", "-r"),
-    csv_output: bool = typer.Option(False, "--output", "-o"),
     network: str = typer.Option(Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
@@ -69,7 +99,7 @@ def positions(
     if not sort_key:
         sort_key = "pos_id"
 
-    with console.status(f"[bold green]Querying Balanced positions..."):  # noqa 503
+    with console.status("[bold green]Querying Balanced positions..."):
         positions = balanced.query_positions(
             index_start,
             index_end,
@@ -77,11 +107,11 @@ def positions(
             max_collateralization,
             sort_key,
             reverse,
-        )  # noqa 503
+        )
 
     # Raise error if there are no Balanced positions.
     if len(positions) == 0:
-        print("There are no Balanced positions that fit these parameters.")  # noqa 503
+        print("There are no Balanced positions that fit these parameters.")
         raise typer.Exit()
 
     if format == "json":
@@ -102,7 +132,3 @@ def positions(
             )
 
         print_table(table)
-
-        if csv_output:
-            with console.status(f"[bold green]Exporting CSV file..."):  # noqa 503
-                pass

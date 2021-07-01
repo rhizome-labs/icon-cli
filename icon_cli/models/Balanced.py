@@ -18,14 +18,14 @@ class Balanced(Icx):
     BALANCED_DOLLAR_CONTRACT = "cx88fd7df7ddff82f7cc735c871dc519838cb235bb"
     SICX_CONTRACT = "cx2609b924e33ef00b648a409245c7ea394c467824"
 
-    LIQUIDATION_RATIO = 1500000000000000000
+    LIQUIDATION_RATIO = 1.5
 
     def __init__(self, network) -> None:
         super().__init__(network)
 
     def liquidate_position(self, wallet, address: str):
         position = self.query_position_from_address(address)
-        position_ratio = int(position["ratio"], 16)
+        position_ratio = position["ratio"]
 
         if position_ratio > 0 and position_ratio < self.LIQUIDATION_RATIO:
             transaction = self.build_call_transaction(
@@ -54,7 +54,7 @@ class Balanced(Icx):
         params = {"_owner": address}
         result = self.call(self.BALANCED_LOANS_CONTRACT, "getAccountPositions", params)
         if "pos_id" not in result:
-            print(f"{address} does not have a position on Balanced", 3)
+            print(f"{address} does not have a position on Balanced")
             raise typer.Exit()
         else:
             position = self._format_position(result)
