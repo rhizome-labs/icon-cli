@@ -21,6 +21,9 @@ from time import sleep
 
 
 class Icx:
+
+    ICX_GOVERNANCE_CONTRACT = "cx0000000000000000000000000000000000000000"
+
     def __init__(self, network) -> None:
 
         self.network = network
