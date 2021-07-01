@@ -8,7 +8,7 @@ class Gov(Icx):
 
     def query_delegation(self, address):
         params = {"address": address}
-        result = self.call(self.ICX_GOVERNANCE_CONTRACT, "getDelegation", params)
+        result = self.call(self.ICX_GOVERNANCE_CONTRACT_0, "getDelegation", params)
 
         for k, v in result.items():
             if isinstance(v, str) and v[:2] == "0x":

@@ -5,7 +5,7 @@ from icon_cli.utils import hex_to_int
 class Cps(Icx):
     def __init__(self, network) -> None:
         super().__init__(network)
-        self.CPS_CONTRACT = "cx9f4ab72f854d3ccdc59aa6f2c3e2215dd62e879f"  # noqa 503
+        self.CPS_CONTRACT = "cx9f4ab72f854d3ccdc59aa6f2c3e2215dd62e879f"
 
     def query_active_proposals(self, address):
         proposals = self.call(

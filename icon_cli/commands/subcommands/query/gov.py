@@ -3,7 +3,7 @@ from icon_cli.models.Callbacks import Callbacks
 from icon_cli.models.Config import Config
 from icon_cli.models.Gov import Gov
 from icon_cli.models.Prep import Prep
-from icon_cli.utils import format_number_display, print_json, print_table
+from icon_cli.utils import format_number_display, print_json, print_object, print_table
 from rich import box
 from rich import print
 from rich.table import Table
@@ -16,14 +16,14 @@ config = Config()
 
 @app.command()
 def debug():
-    typer.echo(__name__)
+    print_object(__name__)
 
 
 @app.command()
 def preps(
     network: str = typer.Option(Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet),
     range_start: int = typer.Option(1, "--start", "-s"),
-    range_end: int = typer.Option(Prep.query_prep_count(), "--end", "-e"),
+    range_end: int = typer.Option(500, "--end", "-e"),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
     if range_start < 1:

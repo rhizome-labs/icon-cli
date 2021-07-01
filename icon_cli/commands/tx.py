@@ -2,7 +2,7 @@ import typer
 from icon_cli.models.Callbacks import Callbacks
 from icon_cli.models.Config import Config
 from icon_cli.models.Icx import Icx
-from icon_cli.utils import print_json
+from icon_cli.utils import print_object
 from rich import print
 
 app = typer.Typer()
@@ -10,7 +10,7 @@ app = typer.Typer()
 
 @app.command()
 def debug():
-    print(__name__)
+    print_object(__name__)
 
 
 @app.command()
@@ -44,7 +44,7 @@ def send(
         transaction = icx.build_call_transaction(keystore, to, method, params)
 
     if simulation:
-        print_json(transaction.__dict__)
+        print_object(transaction)
     else:
         if confirmation:
             prompt = typer.confirm("Please confirm transaction details.")

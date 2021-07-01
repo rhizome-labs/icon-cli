@@ -1,20 +1,41 @@
 import typer
+from icon_cli.models.Callbacks import Callbacks
 from icon_cli.models.Config import Config
-from icon_cli.utils import print_json
+from icon_cli.utils import print_json, print_object
+from pathlib import Path
 
 app = typer.Typer()
 
 
 @app.command()
 def debug():
-    typer.echo(__name__)
+    print_object(__name__)
+
+
+@app.command()
+def add(
+    keystore_path: Path = typer.Argument(
+        ...,
+        callback=Callbacks.validate_keystore_integrity,
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        writable=False,
+        resolve_path=True,
+    )
+):
+    """
+    Add a keystore to ~/.icon-cli/keystore.
+    """
+    Config.import_keystore(keystore_path)
 
 
 @app.command()
 def inspect(
-    keystore_name=typer.Argument(Config.get_default_keystore()),
+    keystore_name=typer.Argument(Config.get_default_keystore(), callback=Callbacks.validate_keystore_name),
     all: bool = typer.Option(False, "--all", "-a"),
-    format: str = typer.Option(None, "--format", "-f"),
+    format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
     """
     Returns information about imported keystores.

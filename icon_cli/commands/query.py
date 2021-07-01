@@ -3,7 +3,7 @@ from icon_cli.commands.subcommands.query import balanced, cps, gov
 from icon_cli.models.Callbacks import Callbacks
 from icon_cli.models.Config import Config
 from icon_cli.models.Icx import Icx
-from icon_cli.utils import print_json
+from icon_cli.utils import print_json, print_object
 from rich import print
 
 app = typer.Typer()
@@ -15,7 +15,7 @@ app.add_typer(gov.app, name="gov")
 
 @app.command()
 def debug():
-    print(__name__)
+    print_object(__name__)
 
 
 @app.command()

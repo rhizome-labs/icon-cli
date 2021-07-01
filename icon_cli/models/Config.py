@@ -10,7 +10,6 @@ from pathlib import Path, PosixPath
 
 
 class Config:
-
     config_dir = f"{Path.home()}/.icon-cli"
     config_file = f"{config_dir}/config.yml"
     data_dir = f"{config_dir}/data"
@@ -32,17 +31,6 @@ class Config:
         "yeouido": ["https://bicon.net.solidwallet.io", 3],
         "local": ["http://localhost:9000", 3],
     }
-
-    irc2_token_tickers = {
-        "BALN": "cxf61cd5a45dc9f91c15aa65831a30a90d59a09619",
-        "TAP": "cxc0b5b52c9f8b4251a47e91dda3bd61e5512cd782",
-    }
-
-    icx_governance_contract = "cx0000000000000000000000000000000000000001"
-    iiss_contract = "cx0000000000000000000000000000000000000000"
-
-    def __init__(self) -> None:
-        pass
 
     @classmethod
     def initialize_config(cls) -> None:
@@ -136,7 +124,7 @@ class Config:
 
     @staticmethod
     def ping():
-        requests.head("https://icon-cli-analytics.rhizome.workers.dev", timeout=1)
+        requests.head("https://icon-cli-analytics.rhizome.workers.dev", timeout=0.5)
 
     ##############################
     # INTERNAL UTILITY FUNCTIONS #

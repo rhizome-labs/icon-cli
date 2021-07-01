@@ -1,6 +1,6 @@
 import json
 import typer
-from rich import print
+from rich import inspect, print
 from rich.console import Console
 
 
@@ -28,6 +28,12 @@ def hex_to_int(input, exa=None):
 
 def print_json(input):
     print(json.dumps(input, indent=4))
+
+
+def print_object(object):
+    print("\n")
+    inspect(object)
+    print("\n")
 
 
 def print_table(table):

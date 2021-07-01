@@ -2,7 +2,7 @@ import typer
 from icon_cli.models.Balanced import Balanced
 from icon_cli.models.Callbacks import Callbacks
 from icon_cli.models.Config import Config
-from icon_cli.utils import format_number_display, print_json, print_table
+from icon_cli.utils import format_number_display, print_json, print_object, print_table
 from rich import box
 from rich import print
 from rich.console import Console
@@ -13,7 +13,7 @@ app = typer.Typer()
 
 @app.command()
 def debug():
-    print(__name__)
+    print_object(__name__)
 
 
 @app.command()
@@ -34,7 +34,7 @@ def position(
 @app.command()
 def position_count(
     network: str = typer.Option(Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet),
-    format: str = typer.Option(None, "--format", "-f"),
+    format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
     balanced = Balanced(network)
     position_count = balanced.query_position_count()

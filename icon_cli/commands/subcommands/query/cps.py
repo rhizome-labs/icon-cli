@@ -4,11 +4,7 @@ from icon_cli.models.Callbacks import Callbacks
 from icon_cli.models.Config import Config
 from icon_cli.models.Cps import Cps
 from icon_cli.models.Prep import Prep
-from icon_cli.utils import (
-    format_number_display,
-    print_json,
-    print_table,
-)
+from icon_cli.utils import format_number_display, print_json, print_object, print_table
 from rich import box
 from rich import print
 from rich.table import Table
@@ -18,7 +14,7 @@ app = typer.Typer()
 
 @app.command()
 def debug():
-    print(__name__)
+    print_object(__name__)
 
 
 @app.command()
@@ -93,7 +89,7 @@ def proposal(
 
 
 @app.command()
-def proposals(
+def active_proposals(
     network: str = typer.Option(Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
@@ -101,7 +97,7 @@ def proposals(
     contributor_addresses = cps.query_cps_contributors()
 
     with ThreadPoolExecutor() as executor:
-        all_proposals = list(executor.map(cps.query_proposal_details, contributor_addresses))  # noqa 503
+        all_proposals = list(executor.map(cps.query_proposal_details, contributor_addresses))
 
     active_proposals = []
 
@@ -123,7 +119,7 @@ def proposals(
         )
 
         for header in ["Sponsor", "Project Name", "IPFS Hash"]:
-            table.add_column(header, justify="left", header_style="bold cyan")
+            table.add_column(header, justify="left")
 
         for proposal in active_proposals:
             sponsor_name = Prep.convert_address_to_name(proposal["sponsor_address"])

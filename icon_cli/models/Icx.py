@@ -21,8 +21,13 @@ from time import sleep
 
 
 class Icx:
+    ICX_GOVERNANCE_CONTRACT_0 = "cx0000000000000000000000000000000000000000"
+    ICX_GOVERNANCE_CONTRACT_1 = "cx0000000000000000000000000000000000000001"
 
-    ICX_GOVERNANCE_CONTRACT = "cx0000000000000000000000000000000000000000"
+    IRC2_TOKEN_CONTRACTS = {
+        "BALN": "cxf61cd5a45dc9f91c15aa65831a30a90d59a09619",
+        "TAP": "cxc0b5b52c9f8b4251a47e91dda3bd61e5512cd782",
+    }
 
     def __init__(self, network) -> None:
 
@@ -57,7 +62,7 @@ class Icx:
         return block
 
     def query_token_balance(self, address, ticker: str):
-        tickers = Config.irc2_token_tickers
+        tickers = self.IRC2_TOKEN_CONTRACTS
         contract_address = tickers[ticker.upper()]
         token_balance = self.call(contract_address, "balanceOf", {"_owner": address})
         return int(token_balance, 16) / 10 ** 18
