@@ -23,7 +23,16 @@ class Balanced(Icx):
     def __init__(self, network) -> None:
         super().__init__(network)
 
-    def liquidate_position(self, wallet, address: str):
+    def liquidate_position(self, wallet, address: str) -> dict:
+        """Liquidates a bad position on Balanced. #REKT
+
+        Args:
+            wallet: An ICX KeyWallet object.
+            address: The ICX address of the position owner to liquidate.
+
+        Returns:
+            A dictionary containing transaction metadata.
+        """
         position = self.query_position_from_address(address)
         position_ratio = position["ratio"]
 
@@ -42,6 +51,15 @@ class Balanced(Icx):
             raise typer.Exit()
 
     def query_position_address(self, index: int) -> str:
+        """
+        Query the position address for a given position index.
+
+        Args:
+            index: Index of the Balanced position to query.
+
+        Returns:
+            The ICX address of the queried position.
+        """
         result = self.call(self.BALANCED_LOANS_CONTRACT, "getPositionAddress", {"_index": index})
         return result
 
