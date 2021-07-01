@@ -26,6 +26,13 @@ def preps(
     range_end: int = typer.Option(Prep.query_prep_count(), "--end", "-e"),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
+    if range_start < 1:
+        print("Range start must be greater than 1.")
+        raise typer.Exit()
+    if range_end < range_start:
+        print("Range end must be greater than range start.")
+        raise typer.Exit()
+
     prep = Prep(network)
     preps = prep.query_preps(range_start, range_end)
 
