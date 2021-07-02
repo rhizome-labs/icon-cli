@@ -41,6 +41,13 @@ def liquidate(
 
 
 @app.command()
+def order(
+    pool: str = typer.Argument(...),
+):
+    pass
+
+
+@app.command()
 def provide(
     pool: str = typer.Argument(...),
     amount: int = typer.Argument(...),
