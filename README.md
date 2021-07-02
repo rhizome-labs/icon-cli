@@ -2,7 +2,7 @@
 
 icon-cli is a command line interface for interacting with the ICON blockchain network. At this time, icon-cli is in active development, so I don't recommend using it for production tasks for now.
 
-Contrary to popular belief, icon-cli is not a [T-Bears](https://github.com/icon-project/t-bears) clone, and has a wide array of features such as:
+Contrary to popular belief, icon-cli is not a [T-Bears](https://github.com/icon-project/t-bears) clone, and has a wide array of unique features such as:
 
 - Querying general blockchain data.
 - Sending transactions, including bulk transactions.
