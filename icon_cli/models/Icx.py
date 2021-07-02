@@ -17,6 +17,7 @@ from icon_cli.models.Config import Config
 from dotenv import load_dotenv
 from getpass import getpass
 from random import randint
+from rich.console import Console
 from time import sleep
 
 
@@ -222,13 +223,14 @@ class Icx:
             raise typer.Exit()
 
     def _get_transaction_result(self, transaction_hash):
-        while True:
-            try:
-                transaction_result = self.icon_service.get_transaction_result(transaction_hash)
-                if transaction_result["status"] == 1:
-                    break
-            except JSONRPCException:
-                typer.echo("Transaction in progress...")
-                sleep(1)
-                continue
-        return transaction_result
+        console = Console()
+        with console.status("[bold green]Broadcasting transaction..."):
+            while True:
+                try:
+                    transaction_result = self.icon_service.get_transaction_result(transaction_hash)
+                    if transaction_result["status"] == 1:
+                        break
+                except JSONRPCException:
+                    sleep(1)
+                    continue
+            return transaction_result

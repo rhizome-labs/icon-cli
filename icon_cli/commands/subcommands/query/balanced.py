@@ -1,6 +1,6 @@
 import typer
 from datetime import datetime
-from icon_cli.models.Balanced import Balanced
+from icon_cli.dapps.balanced.Balanced import Balanced
 from icon_cli.models.Callbacks import Callbacks
 from icon_cli.models.Config import Config
 from icon_cli.utils import format_number_display, print_json, print_object, print_table
@@ -20,7 +20,9 @@ def debug():
 @app.command()
 def position(
     address: str = typer.Argument(..., callback=Callbacks.validate_icx_address),
-    network: str = typer.Option(Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet),
+    network: str = typer.Option(
+        Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet
+    ),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
     balanced = Balanced(network)
@@ -42,10 +44,16 @@ def position(
         table.add_column("Value", justify="left")
 
         created_at = (
-            datetime.fromtimestamp(position["created"] / 1000000).astimezone().replace(microsecond=0).isoformat()
+            datetime.fromtimestamp(position["created"] / 1000000)
+            .astimezone()
+            .replace(microsecond=0)
+            .isoformat()
         )
 
-        assets = [f"{format_number_display(amount, 0, 4)} {ticker}" for ticker, amount in position["assets"].items()]
+        assets = [
+            f"{format_number_display(amount, 0, 4)} {ticker}"
+            for ticker, amount in position["assets"].items()
+        ]
 
         table.add_row("ADDRESS", position["address"])
         table.add_row("STANDING", position["standing"])
@@ -64,7 +72,9 @@ def position(
 
 @app.command()
 def position_count(
-    network: str = typer.Option(Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet),
+    network: str = typer.Option(
+        Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet
+    ),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
     balanced = Balanced(network)
@@ -85,7 +95,9 @@ def positions(
     max_collateralization: int = typer.Option(300, "--max-collateralization", "-max"),
     sort_key: str = typer.Option(None, "--sort", "-k"),
     reverse: bool = typer.Option(False, "--reverse", "-r"),
-    network: str = typer.Option(Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet),
+    network: str = typer.Option(
+        Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet
+    ),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
     balanced = Balanced(network)

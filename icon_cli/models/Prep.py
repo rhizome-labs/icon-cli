@@ -85,7 +85,9 @@ class Prep(Icx):
     @staticmethod
     def query_prep_count():
         try:
-            r = requests.get("https://tracker.icon.foundation/v3/iiss/prep/list?count=500", timeout=0.5)
+            r = requests.get(
+                "https://tracker.icon.foundation/v3/iiss/prep/list?count=500", timeout=0.5
+            )
             r.raise_for_status()
             prep_count = r.json()["totalSize"]
         except Exception:

@@ -1,5 +1,6 @@
 import typer
-from icon_cli.models.Balanced import Balanced
+from icon_cli.dapps.balanced.Balanced import Balanced
+from icon_cli.dapps.balanced.BalancedDividends import BalancedDividends
 from icon_cli.models.Callbacks import Callbacks
 from icon_cli.models.Config import Config
 from icon_cli.utils import print_object
@@ -14,8 +15,20 @@ def debug():
 
 
 @app.command()
-def distribute():
-    pass
+def distribute(
+    keystore: str = typer.Option(
+        Config.get_default_keystore(),
+        "--keystore",
+        "-k",
+        callback=Callbacks.load_wallet_from_keystore,
+    ),
+    network: str = typer.Option(
+        Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet
+    ),
+):
+    balanced_dividends = BalancedDividends(network)
+    result = balanced_dividends.distribute_dividends(keystore)
+    print(result)
 
 
 @app.command()

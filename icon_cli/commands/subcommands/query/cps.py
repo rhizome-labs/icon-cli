@@ -1,8 +1,8 @@
 import typer
 from concurrent.futures import ThreadPoolExecutor
+from icon_cli.dapps.cps.Cps import Cps
 from icon_cli.models.Callbacks import Callbacks
 from icon_cli.models.Config import Config
-from icon_cli.models.Cps import Cps
 from icon_cli.models.Prep import Prep
 from icon_cli.utils import format_number_display, print_json, print_object, print_table
 from rich import box
@@ -19,7 +19,9 @@ def debug():
 
 @app.command()
 def balance(
-    network: str = typer.Option(Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet),
+    network: str = typer.Option(
+        Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet
+    ),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
     """
@@ -37,7 +39,9 @@ def balance(
 
 @app.command()
 def period(
-    network: str = typer.Option(Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet),
+    network: str = typer.Option(
+        Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet
+    ),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
     cps = Cps(network)
@@ -51,7 +55,9 @@ def period(
 
 @app.command()
 def preps(
-    network: str = typer.Option(Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet),
+    network: str = typer.Option(
+        Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet
+    ),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
     cps = Cps(network)
@@ -76,7 +82,9 @@ def preps(
 @app.command()
 def proposal(
     address: str = typer.Argument(..., callback=Callbacks.validate_icx_address),
-    network: str = typer.Option(Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet),
+    network: str = typer.Option(
+        Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet
+    ),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
     cps = Cps(network)
@@ -90,7 +98,9 @@ def proposal(
 
 @app.command()
 def active_proposals(
-    network: str = typer.Option(Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet),
+    network: str = typer.Option(
+        Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet
+    ),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
     cps = Cps(network)
