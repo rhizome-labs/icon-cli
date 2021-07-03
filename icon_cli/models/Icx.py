@@ -15,6 +15,7 @@ from iconsdk.wallet.wallet import KeyWallet
 from iconsdk.providers.http_provider import HTTPProvider
 from iconsdk.signed_transaction import SignedTransaction
 from icon_cli.models.Config import Config
+from icon_cli.utils import log
 from dotenv import load_dotenv
 from getpass import getpass
 from random import randint
@@ -23,6 +24,10 @@ from time import sleep
 
 
 class Icx:
+
+    EXA = 10 ** 18
+
+    BAND_ORACLE_CONTRACT = "cx087b4164a87fdfb7b714f3bafe9dfb050fd6b132"
     ICX_GOVERNANCE_CONTRACT_0 = "cx0000000000000000000000000000000000000000"
     ICX_GOVERNANCE_CONTRACT_1 = "cx0000000000000000000000000000000000000001"
 
@@ -48,26 +53,36 @@ class Icx:
             result = self.icon_service.call(call)
             return result
         except JSONRPCException as e:
-            print(e)
+            log(e)
             raise typer.Exit()
 
     ##################
     # CALL FUNCTIONS #
     ##################
 
-    def query_latest_block(self):
-        latest_block = self.icon_service.get_block("latest")
-        return latest_block
+    def query_balance(self, address: str):
+        balance = self.icon_service.get_balance(address)
+        return balance
 
     def query_block(self, block: int):
         block = self.icon_service.get_block(block)
         return block
 
+    def query_icx_usd_price(self):
+        params = {"_symbol": "ICX"}
+        result = self.call(self.BAND_ORACLE_CONTRACT, "get_ref_data", params)
+        icx_usd_price = int(result["rate"], 16) / 1000000000
+        return icx_usd_price
+
+    def query_latest_block(self):
+        latest_block = self.icon_service.get_block("latest")
+        return latest_block
+
     def query_token_balance(self, address, ticker: str):
         tickers = self.IRC2_TOKEN_CONTRACTS
         contract_address = tickers[ticker.upper()]
         token_balance = self.call(contract_address, "balanceOf", {"_owner": address})
-        return int(token_balance, 16) / 10 ** 18
+        return int(token_balance, 16) / self.EXA
 
     def query_transaction_result(self, transaction_hash: str):
         transaction_result = self.icon_service.get_transaction_result(transaction_hash)  # noqa 503
@@ -96,22 +111,25 @@ class Icx:
                 TransactionBuilder()
                 .from_(wallet.get_address())
                 .to(to)
-                .value(value * 10 ** 18)
+                .value(value)
                 .nid(self.nid)
                 .nonce(self._generate_nonce())
                 .build()
             )
             return transaction
         except Exception as e:
-            print(e)
+            log(e)
             raise typer.Exit()
 
-    def build_call_transaction(self, wallet, to, method, params: dict = {}):
+    def build_call_transaction(
+        self, wallet, to, value: int = 0, method: str = None, params: dict = {}
+    ):
         try:
             transaction = (
                 CallTransactionBuilder()
                 .from_(wallet.get_address())
                 .to(to)
+                .value(value)
                 .nid(self.nid)
                 .nonce(self._generate_nonce())
                 .method(method)
@@ -120,7 +138,7 @@ class Icx:
             )
             return transaction
         except Exception as e:
-            print(e)
+            log(e)
             raise typer.Exit()
 
     def build_deploy_transaction(self, wallet, to, content, params):
@@ -138,7 +156,7 @@ class Icx:
             )
             return transaction
         except Exception as e:
-            print(e)
+            log(e)
             raise typer.Exit()
 
     def build_message_transaction(self, wallet, to, data):
@@ -154,18 +172,23 @@ class Icx:
             )
             return transaction
         except Exception as e:
-            print(e)
+            log(e)
             raise typer.Exit()
 
-    def send_transaction(self, wallet, transaction):
+    def send_transaction(
+        self, wallet, transaction, broadcast_message: str = "Broadcasting transaction..."
+    ):
         try:
             step_limit = self.icon_service.estimate_step(transaction) + 1000
             signed_transaction = SignedTransaction(transaction, wallet, step_limit)
             transaction_hash = self.icon_service.send_transaction(signed_transaction)
-            transaction_result = self._get_transaction_result(transaction_hash)
+            transaction_result = self._get_transaction_result(transaction_hash, broadcast_message)
             return transaction_result
+        except JSONRPCException as e:
+            log(e)
+            raise typer.Exit()
         except Exception as e:
-            print(e)
+            log(e)
             raise typer.Exit()
 
     ####################
@@ -188,7 +211,7 @@ class Icx:
             print("Sorry, the password you supplied is incorrect.")
             raise typer.Exit()
         except Exception as e:
-            print(e)
+            log(e)
             raise typer.Exit()
 
     ##############################
@@ -222,12 +245,12 @@ class Icx:
             response.raise_for_status()
             return response.json()["tmainInfo"]
         except Exception as e:
-            print(e)
+            log(e)
             raise typer.Exit()
 
-    def _get_transaction_result(self, transaction_hash):
+    def _get_transaction_result(self, transaction_hash, broadcast_message):
         console = Console()
-        with console.status("[bold green]Broadcasting transaction..."):
+        with console.status(f"[bold green]{broadcast_message}"):
             while True:
                 try:
                     transaction_result = self.icon_service.get_transaction_result(transaction_hash)

@@ -83,6 +83,13 @@ class Config:
             if keystore_name == imported_keystore["keystore_name"]:
                 return imported_keystore
 
+    @classmethod
+    def get_keystore_address(cls, keystore_name) -> dict:
+        config = cls._read_config()
+        for imported_keystore in config["keystores"]:
+            if keystore_name == imported_keystore["keystore_name"]:
+                return imported_keystore["keystore_address"]
+
     #####################
     # NETWORK FUNCTIONS #
     #####################

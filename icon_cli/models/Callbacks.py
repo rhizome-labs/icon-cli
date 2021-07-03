@@ -15,7 +15,9 @@ class Callbacks:
     @staticmethod
     def enforce_mainnet(network):
         if network != "mainnet":
-            print(f"Sorry, this command is only available on mainnet. Your network is currently set to {network}.")
+            print(
+                f"Sorry, this command is only available on mainnet. Your network is currently set to {network}."
+            )
             raise typer.Exit()
         else:
             return network
@@ -33,7 +35,9 @@ class Callbacks:
                     wallet_password = os.getenv(keystore_name.upper())
                 else:
                     wallet_password = getpass("Keystore Password: ")
-                wallet = KeyWallet.load(f"{Config.keystore_dir}/{keystore_filename}", wallet_password)
+                wallet = KeyWallet.load(
+                    f"{Config.keystore_dir}/{keystore_filename}", wallet_password
+                )
                 return wallet
             except KeyStoreException:
                 print("Sorry, the password you supplied is incorrect.")
@@ -107,9 +111,9 @@ class Callbacks:
             raise typer.Exit()
 
     @staticmethod
-    def validate_transaction_value(transaction_value):
-        if transaction_value >= 0:
-            return transaction_value
-        else:
+    def validate_transaction_value(transaction_value: float):
+        if transaction_value < 0:
             print(f"Sorry, {transaction_value} is invalid. The minimum transaction value is 0.")
             raise typer.Exit()
+        else:
+            return transaction_value

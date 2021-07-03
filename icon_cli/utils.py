@@ -16,12 +16,17 @@ def enforce_mainnet(network):
         raise typer.Exit()
 
 
-def format_number_display(input, exa=0, dec=4):
+def format_number_display(input, exa=0, dec=4, strip=False):
     if isinstance(input, str):
         input = int(input, 16) / 10 ** exa
+    elif isinstance(input, int):
+        input = input / 10 ** exa
     if input % 1 == 0:
         dec = 0
-    return "{:,.{}f}".format(input, dec)
+    if strip is True:
+        return "{:,.{}f}".format(input, dec).rstrip("0")
+    else:
+        return "{:,.{}f}".format(input, dec)
 
 
 def hex_to_int(input, exa=None):
@@ -42,7 +47,10 @@ def log(message):
         level=log_level, format="%(message)s", datefmt="[%X]", handlers=[RichHandler()]
     )
     log = logging.getLogger("rich")
-    log.debug(message)
+    if log_level == "DEBUG":
+        log.debug(message)
+    else:
+        log.error(message)
 
 
 def print_json(input):
@@ -60,3 +68,8 @@ def print_table(table):
     print("\n")
     console.print(table)
     print("\n")
+
+
+def to_loop(value):
+    loop = int(value * 10 ** 18)
+    return loop

@@ -72,6 +72,14 @@ class BalancedLoans(Balanced):
     # TRANSACTION FUNCTIONS #
     #########################
 
+    def deposit_and_borrow(self, wallet, deposit_amount: int = 0, borrow_amount: int = 0):
+        params = {"_asset": "bnUSD", "_amount": borrow_amount}
+        transaction = self.build_call_transaction(
+            wallet, self.BALANCED_LOANS_CONTRACT, deposit_amount, "depositAndBorrow", params
+        )
+        transaction_result = self.send_transaction(wallet, transaction)
+        return transaction_result
+
     def liquidate_position(self, wallet, address: str) -> dict:
         """Liquidates a bad position on Balanced. #REKT
 

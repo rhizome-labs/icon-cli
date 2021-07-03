@@ -26,6 +26,7 @@ def position(
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
     balanced_loans = BalancedLoans(network)
+
     position = balanced_loans.query_position_from_address(address)
 
     if format == "json":
@@ -78,6 +79,7 @@ def position_count(
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
     balanced_loans = BalancedLoans(network)
+
     position_count = balanced_loans.query_position_count()
 
     if format == "json":
