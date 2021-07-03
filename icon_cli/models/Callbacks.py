@@ -1,5 +1,6 @@
 import os
 import typer
+from decimal import Decimal, getcontext
 from dotenv import load_dotenv
 from getpass import getpass
 from iconsdk.exception import KeyStoreException
@@ -112,7 +113,8 @@ class Callbacks:
             raise typer.Exit()
 
     @staticmethod
-    def validate_transaction_value(transaction_value: float):
+    def validate_transaction_value(transaction_value: str):
+        transaction_value = Decimal(transaction_value)
         if transaction_value < 0:
             print(f"Sorry, {transaction_value} is invalid. The minimum transaction value is 0.")
             raise typer.Exit()

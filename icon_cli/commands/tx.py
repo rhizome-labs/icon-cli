@@ -1,5 +1,5 @@
 import typer
-from icon_cli.commands.subcommands.tx import balanced
+from icon_cli.commands.subcommands.tx.balanced import balanced
 from icon_cli.models.Callbacks import Callbacks
 from icon_cli.models.Config import Config
 from icon_cli.models.Icx import Icx
@@ -19,8 +19,10 @@ def debug():
 @app.command()
 def send(
     to: str = typer.Argument(..., callback=Callbacks.validate_icx_address),
-    value: int = typer.Argument(..., callback=Callbacks.validate_transaction_value),
-    type: str = typer.Option("transaction", "--type", "-t", callback=Callbacks.validate_transaction_type),
+    value: str = typer.Argument(..., callback=Callbacks.validate_transaction_value),
+    type: str = typer.Option(
+        "transaction", "--type", "-t", callback=Callbacks.validate_transaction_type
+    ),
     method: str = typer.Option(None, "--method", "-m"),
     params: str = typer.Option(None, "--params", "-p"),
     keystore: str = typer.Option(
@@ -29,7 +31,9 @@ def send(
         "-k",
         callback=Callbacks.load_wallet_from_keystore,
     ),
-    network: str = typer.Option(Config.get_default_network(), "--network", "-n", callback=Callbacks.validate_network),
+    network: str = typer.Option(
+        Config.get_default_network(), "--network", "-n", callback=Callbacks.validate_network
+    ),
     simulation: bool = typer.Option(False, "--simulate", "-s"),
     confirmation: bool = typer.Option(True, "--confirm", "-c"),
 ):

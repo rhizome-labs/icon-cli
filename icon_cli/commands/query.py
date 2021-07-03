@@ -21,7 +21,9 @@ def debug():
 @app.command()
 def account(
     address: str = typer.Argument(..., callback=Callbacks.validate_icx_address),
-    network: str = typer.Option(Config.get_default_network(), "--network", "-n", callback=Callbacks.validate_network),
+    network: str = typer.Option(
+        Config.get_default_network(), "--network", "-n", callback=Callbacks.validate_network
+    ),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
     icx = Icx(network)
@@ -34,9 +36,28 @@ def account(
 
 
 @app.command()
+def balance(
+    address: str = typer.Argument(..., callback=Callbacks.validate_icx_address),
+    network: str = typer.Option(
+        Config.get_default_network(), "--network", "-n", callback=Callbacks.validate_network
+    ),
+    format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
+):
+    icx = Icx(network)
+    balance = icx.query_icx_balance(address)
+
+    if format == "json":
+        print_json(balance)
+    else:
+        print(balance)
+
+
+@app.command()
 def block(
     block: int = typer.Argument(0, callback=Callbacks.validate_block),
-    network: str = typer.Option(Config.get_default_network(), "--network", "-n", callback=Callbacks.validate_network),
+    network: str = typer.Option(
+        Config.get_default_network(), "--network", "-n", callback=Callbacks.validate_network
+    ),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
     """
@@ -53,7 +74,9 @@ def block(
 
 @app.command()
 def supply(
-    network: str = typer.Option(Config.get_default_network(), "--network", "-n", callback=Callbacks.validate_network),
+    network: str = typer.Option(
+        Config.get_default_network(), "--network", "-n", callback=Callbacks.validate_network
+    ),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
     icx = Icx(network)
@@ -66,7 +89,9 @@ def supply(
 @app.command()
 def transaction(
     transaction_hash: str = typer.Argument(...),
-    network: str = typer.Option(Config.get_default_network(), "--network", "-n", callback=Callbacks.validate_network),
+    network: str = typer.Option(
+        Config.get_default_network(), "--network", "-n", callback=Callbacks.validate_network
+    ),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
     icx = Icx(network)

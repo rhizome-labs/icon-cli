@@ -1,4 +1,5 @@
 import typer
+from icon_cli.commands.subcommands.tx.balanced import balanced_pool
 from icon_cli.dapps.balanced.BalancedLoans import BalancedLoans
 from icon_cli.dapps.balanced.BalancedDividends import BalancedDividends
 from icon_cli.models.Callbacks import Callbacks
@@ -7,6 +8,8 @@ from icon_cli.utils import format_number_display, log, print_object, print_tx_ha
 from rich import print
 
 app = typer.Typer()
+
+app.add_typer(balanced_pool.app, name="pool")
 
 
 @app.command()
@@ -92,7 +95,7 @@ def borrow(
 
 @app.command()
 def deposit(
-    deposit_amount: float = typer.Argument(..., callback=Callbacks.validate_transaction_value),
+    deposit_amount: str = typer.Argument(..., callback=Callbacks.validate_transaction_value),
     keystore: str = typer.Option(
         Config.get_default_keystore(),
         "--keystore",
@@ -117,7 +120,10 @@ def deposit(
     log(f"Total Collateral Asset Balance: {icx_sicx_balance} ICX/sICX")
 
     if deposit_amount > icx_sicx_balance:
-        print(f"Sorry, you can only deposit ")
+        print(
+            f"Sorry, you can't deposit {format_number_display(deposit_amount, 18, 18)} ICX.\n"
+            f"You only have {format_number_display(icx_balance, 18, 18)} ICX and {format_number_display(sicx_balance, 18, 18)} sICX."  # noqa 503
+        )
 
     exit()
 
