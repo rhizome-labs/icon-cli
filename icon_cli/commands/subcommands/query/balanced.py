@@ -1,6 +1,6 @@
 import typer
 from datetime import datetime
-from icon_cli.dapps.balanced.Balanced import Balanced
+from icon_cli.dapps.balanced.BalancedLoans import BalancedLoans
 from icon_cli.models.Callbacks import Callbacks
 from icon_cli.models.Config import Config
 from icon_cli.utils import format_number_display, print_json, print_object, print_table
@@ -25,8 +25,8 @@ def position(
     ),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
-    balanced = Balanced(network)
-    position = balanced.query_position_from_address(address)
+    balanced_loans = BalancedLoans(network)
+    position = balanced_loans.query_position_from_address(address)
 
     if format == "json":
         print_json(position)
@@ -77,8 +77,8 @@ def position_count(
     ),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
-    balanced = Balanced(network)
-    position_count = balanced.query_position_count()
+    balanced_loans = BalancedLoans(network)
+    position_count = balanced_loans.query_position_count()
 
     if format == "json":
         response = {"position_count": position_count}
@@ -100,19 +100,19 @@ def positions(
     ),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
-    balanced = Balanced(network)
+    balanced_loans = BalancedLoans(network)
     console = Console()
 
     # If index_end is None, set index_end to maximum.
     if not index_end:
-        index_end = balanced.query_position_count() + 1
+        index_end = balanced_loans.query_position_count() + 1
 
     # If sort_key is None, set sort_key to "pos_id".
     if not sort_key:
         sort_key = "pos_id"
 
     with console.status("[bold green]Querying Balanced positions..."):
-        positions = balanced.query_positions(
+        positions = balanced_loans.query_positions(
             index_start,
             index_end,
             min_collateralization,

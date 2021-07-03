@@ -1,5 +1,5 @@
 import typer
-from icon_cli.dapps.balanced.Balanced import Balanced
+from icon_cli.dapps.balanced.BalancedLoans import BalancedLoans
 from icon_cli.dapps.balanced.BalancedDividends import BalancedDividends
 from icon_cli.models.Callbacks import Callbacks
 from icon_cli.models.Config import Config
@@ -47,8 +47,8 @@ def liquidate(
         callback=Callbacks.enforce_mainnet,
     ),
 ):
-    balanced = Balanced(network)
-    transaction_result = balanced.liquidate_position(wallet, address)
+    balanced_loans = BalancedLoans(network)
+    transaction_result = balanced_loans.liquidate_position(wallet, address)
 
     print(f"{address} has been liquidated: {transaction_result['txHash']}")
 
