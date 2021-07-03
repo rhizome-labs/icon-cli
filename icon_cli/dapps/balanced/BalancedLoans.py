@@ -80,7 +80,7 @@ class BalancedLoans(Balanced):
         transaction_result = self.send_transaction(wallet, transaction)
         return transaction_result
 
-    def liquidate_position(self, wallet, address: str) -> dict:
+    def liquidate(self, wallet, address: str) -> dict:
         """Liquidates a bad position on Balanced. #REKT
 
         Args:

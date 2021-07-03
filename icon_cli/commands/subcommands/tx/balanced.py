@@ -157,7 +157,7 @@ def liquidate(
 ):
     balanced_loans = BalancedLoans(network)
 
-    transaction_result = balanced_loans.liquidate_position(wallet, address)
+    transaction_result = balanced_loans.liquidate(wallet, address)
 
     print(f"{address} has been liquidated: {transaction_result['txHash']}")
 
