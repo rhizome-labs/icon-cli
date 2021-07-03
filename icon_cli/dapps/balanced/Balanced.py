@@ -15,7 +15,7 @@ class Balanced(Icx):
     BALANCED_DOLLAR_CONTRACT = "cx88fd7df7ddff82f7cc735c871dc519838cb235bb"
     SICX_CONTRACT = "cx2609b924e33ef00b648a409245c7ea394c467824"
 
-    LIQUIDATION_RATIO = 1.5
+    GEOMETRY_API_ENDPOINT = "https://balanced.geometry.io/api/v1"
 
     def __init__(self, network) -> None:
         super().__init__(network)

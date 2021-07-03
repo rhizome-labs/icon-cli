@@ -27,8 +27,13 @@ def distribute(
     ),
 ):
     balanced_dividends = BalancedDividends(network)
-    result = balanced_dividends.distribute_dividends(keystore)
-    print(result)
+    distribution_check = balanced_dividends.distribution_check()
+
+    if distribution_check == 0:
+        balanced_dividends.distribute_dividends(keystore)
+        print("Reward distribution has been triggered.")
+    else:
+        print("Reward distribution is already finished.")
 
 
 @app.command()

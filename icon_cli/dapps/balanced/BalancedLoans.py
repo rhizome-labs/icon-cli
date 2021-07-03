@@ -5,6 +5,9 @@ from icon_cli.utils import hex_to_int
 
 
 class BalancedLoans(Balanced):
+
+    LIQUIDATION_RATIO = 1.5
+
     def __init__(self, network) -> None:
         super().__init__(network)
 
