@@ -6,6 +6,7 @@ import requests
 import shutil
 import typer
 import yaml
+from functools import lru_cache
 from pathlib import Path, PosixPath
 
 
@@ -62,17 +63,20 @@ class Config:
     ######################
 
     @classmethod
+    @lru_cache()
     def get_default_keystore(cls) -> str:
         config = cls._read_config()
         default_keystore = config["default_keystore"]
         return default_keystore
 
     @classmethod
+    @lru_cache()
     def get_imported_keystores(cls) -> list:
         config = cls._read_config()
         return config["keystores"]
 
     @classmethod
+    @lru_cache()
     def get_keystore_metadata(cls, keystore_name) -> dict:
         config = cls._read_config()
         for imported_keystore in config["keystores"]:
@@ -84,6 +88,7 @@ class Config:
     #####################
 
     @classmethod
+    @lru_cache()
     def get_default_network(cls) -> str:
         config = cls._read_config()
         default_network = config["default_network"]
@@ -174,5 +179,7 @@ class Config:
         with io.open(keystore_path, "r", encoding="utf-8-sig") as keystore_file:
             keystore_json = json.load(keystore_file)
             keystore_address = keystore_json["address"]
-        keystore_hash = hashlib.md5(open("/Users/brianli/Desktop/testnet-keystore", "rb").read()).hexdigest()
+        keystore_hash = hashlib.md5(
+            open("/Users/brianli/Desktop/testnet-keystore", "rb").read()
+        ).hexdigest()
         return keystore_json, keystore_address, keystore_hash

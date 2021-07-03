@@ -1,6 +1,7 @@
 import os
 import requests
 import typer
+from functools import lru_cache
 from iconsdk.builder.call_builder import CallBuilder
 from iconsdk.builder.transaction_builder import (
     CallTransactionBuilder,
@@ -198,6 +199,7 @@ class Icx:
         nonce = int("".join([str(randint(0, 9)) for i in range(length)]))  # noqa 503
         return nonce
 
+    @lru_cache()
     def _get_icon_service(self, network: str):
         default_networks = Config.get_default_networks()
         endpoint_hostname, nid = default_networks.get(network)
@@ -206,6 +208,7 @@ class Icx:
             nid,
         )
 
+    @lru_cache()
     def _get_tracker_url(self, network: str):
         if network == "mainnet":
             return "https://tracker.icon.foundation/v3"

@@ -7,12 +7,12 @@ from rich import inspect, print
 from rich.logging import RichHandler
 from rich.console import Console
 
-load_dotenv()
-
 
 def enforce_mainnet(network):
     if network != "mainnet":
-        print(f"Sorry, this command is only available on mainnet. Your network is currently set to {network}.")
+        print(
+            f"Sorry, this command is only available on mainnet. Your network is currently set to {network}."
+        )
         raise typer.Exit()
 
 
@@ -33,11 +33,14 @@ def hex_to_int(input, exa=None):
 
 
 def log(message):
+    load_dotenv()
     if os.getenv("ENV") == "DEBUG":
         log_level = "DEBUG"
     else:
         log_level = "ERROR"
-    logging.basicConfig(level=log_level, format="%(message)s", datefmt="[%X]", handlers=[RichHandler()])
+    logging.basicConfig(
+        level=log_level, format="%(message)s", datefmt="[%X]", handlers=[RichHandler()]
+    )
     log = logging.getLogger("rich")
     log.debug(message)
 
