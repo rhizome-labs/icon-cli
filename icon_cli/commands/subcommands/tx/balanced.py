@@ -104,14 +104,29 @@ def deposit(
     ),
     skip: bool = typer.Option(False, "--skip", "-s"),
 ):
+    balanced_loans = BalancedLoans(network)
+
+    wallet_address = keystore.get_address()
+    icx_balance = balanced_loans.query_icx_balance(wallet_address) - (2 * balanced_loans.EXA)
+    sicx_balance = balanced_loans.query_token_balance(wallet_address, "sICX")
+    icx_sicx_balance = icx_balance + sicx_balance
+
+    log(f"Deposit Amount: {deposit_amount}")
+    log(f"ICX Balance: {icx_balance} ICX")
+    log(f"sICX Balance: {sicx_balance} sICX")
+    log(f"Total Collateral Asset Balance: {icx_sicx_balance} ICX/sICX")
+
+    if deposit_amount > icx_sicx_balance:
+        print(f"Sorry, you can only deposit ")
+
+    exit()
+
     if skip is False:
         deposit_confirmation = typer.confirm(
             f"Please confirm you'd like deposit {format_number_display(deposit_amount, 0, 4)} ICX."
         )
         if not deposit_confirmation:
             raise typer.Exit()
-
-    balanced_loans = BalancedLoans(network)
 
     transaction_result = balanced_loans.deposit_and_borrow(keystore, to_loop(deposit_amount), 0)
 

@@ -5,6 +5,7 @@ from getpass import getpass
 from iconsdk.exception import KeyStoreException
 from iconsdk.wallet.wallet import KeyWallet
 from icon_cli.models.Config import Config
+from icon_cli.utils import to_loop
 from pathlib import PosixPath
 
 
@@ -116,4 +117,4 @@ class Callbacks:
             print(f"Sorry, {transaction_value} is invalid. The minimum transaction value is 0.")
             raise typer.Exit()
         else:
-            return transaction_value
+            return to_loop(transaction_value)

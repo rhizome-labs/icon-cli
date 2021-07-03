@@ -33,6 +33,7 @@ class Icx:
 
     IRC2_TOKEN_CONTRACTS = {
         "BALN": "cxf61cd5a45dc9f91c15aa65831a30a90d59a09619",
+        "SICX": "cx2609b924e33ef00b648a409245c7ea394c467824",
         "TAP": "cxc0b5b52c9f8b4251a47e91dda3bd61e5512cd782",
     }
 
@@ -60,13 +61,13 @@ class Icx:
     # CALL FUNCTIONS #
     ##################
 
-    def query_balance(self, address: str):
-        balance = self.icon_service.get_balance(address)
-        return balance
-
     def query_block(self, block: int):
         block = self.icon_service.get_block(block)
         return block
+
+    def query_icx_balance(self, address: str):
+        balance = self.icon_service.get_balance(address)
+        return balance
 
     def query_icx_usd_price(self):
         params = {"_symbol": "ICX"}
@@ -82,7 +83,7 @@ class Icx:
         tickers = self.IRC2_TOKEN_CONTRACTS
         contract_address = tickers[ticker.upper()]
         token_balance = self.call(contract_address, "balanceOf", {"_owner": address})
-        return int(token_balance, 16) / self.EXA
+        return int(token_balance, 16)
 
     def query_transaction_result(self, transaction_hash: str):
         transaction_result = self.icon_service.get_transaction_result(transaction_hash)  # noqa 503

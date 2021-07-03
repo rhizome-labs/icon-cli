@@ -29,6 +29,11 @@ def format_number_display(input, exa=0, dec=4, strip=False):
         return "{:,.{}f}".format(input, dec)
 
 
+def from_loop(value):
+    icx = value / 10 ** 18
+    return icx
+
+
 def hex_to_int(input, exa=None):
     if not exa:
         result = int(input, 16)
