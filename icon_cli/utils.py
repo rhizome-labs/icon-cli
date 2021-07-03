@@ -70,6 +70,10 @@ def print_table(table):
     print("\n")
 
 
+def print_tx_hash(transaction_result: dict):
+    print(f"Transaction Hash: {transaction_result['txHash']}")
+
+
 def to_loop(value):
     loop = int(value * 10 ** 18)
     return loop

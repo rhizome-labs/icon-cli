@@ -3,7 +3,7 @@ from icon_cli.dapps.balanced.BalancedLoans import BalancedLoans
 from icon_cli.dapps.balanced.BalancedDividends import BalancedDividends
 from icon_cli.models.Callbacks import Callbacks
 from icon_cli.models.Config import Config
-from icon_cli.utils import format_number_display, log, print_object, to_loop
+from icon_cli.utils import format_number_display, log, print_object, print_tx_hash, to_loop
 from rich import print
 
 app = typer.Typer()
@@ -87,7 +87,7 @@ def borrow(
 
     transaction_result = balanced_loans.deposit_and_borrow(keystore, 0, to_loop(borrow_amount))
 
-    print(f"Transaction Hash: {transaction_result['txHash']}")
+    print_tx_hash(transaction_result)
 
 
 @app.command()
@@ -112,8 +112,10 @@ def deposit(
             raise typer.Exit()
 
     balanced_loans = BalancedLoans(network)
+
     transaction_result = balanced_loans.deposit_and_borrow(keystore, to_loop(deposit_amount), 0)
-    print(f"Transaction Hash: {transaction_result['txHash']}")
+
+    print_tx_hash(transaction_result)
 
 
 @app.command()
