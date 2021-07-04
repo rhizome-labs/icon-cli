@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import typer
+from decimal import Decimal
 from dotenv import load_dotenv
 from rich import inspect, print
 from rich.logging import RichHandler
@@ -16,17 +17,22 @@ def enforce_mainnet(network):
         raise typer.Exit()
 
 
-def format_number_display(input, exa=0, dec=4, strip=False):
-    if isinstance(input, str):
-        input = int(input, 16) / 10 ** exa
+def die(message: str = "Exiting now..."):
+    print(message)
+    raise typer.Exit()
+
+
+def format_number_display(input, exa=18, dec=18):
+    if isinstance(input, str) and input[:2] == "0x":
+        input = Decimal(int(input, 16) / 10 ** exa)
+        print(input)
     elif isinstance(input, int):
-        input = input / 10 ** exa
+        input = Decimal(input) / 10 ** exa
+
     if input % 1 == 0:
-        dec = 0
-    if strip is True:
-        return "{:,.{}f}".format(input, dec).rstrip("0")
+        return "{:,.{}f}".format(input, 0)
     else:
-        return "{:,.{}f}".format(input, dec)
+        return "{:,.{}f}".format(input, dec).rstrip("0")
 
 
 def from_loop(value):

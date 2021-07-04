@@ -1,10 +1,11 @@
 import typer
 from icon_cli.commands.subcommands.tx.balanced import balanced_pool
+from icon_cli.dapps.balanced.Balanced import BalancedCollateralAsset
 from icon_cli.dapps.balanced.BalancedLoans import BalancedLoans
 from icon_cli.dapps.balanced.BalancedDividends import BalancedDividends
 from icon_cli.models.Callbacks import Callbacks
 from icon_cli.models.Config import Config
-from icon_cli.utils import format_number_display, log, print_object, print_tx_hash, to_loop
+from icon_cli.utils import die, format_number_display, log, print_object, print_tx_hash, to_loop
 from rich import print
 
 app = typer.Typer()
@@ -36,12 +37,12 @@ def borrow(
     # Raise exception if both --max and --threshold are specified.
     if max is True and threshold is True:
         print("Sorry, you can't use --max and --threshold at the same time. Please choose one.")
-        raise typer.Exit()
+        raise typer.die()
 
     # Raise exception if loan size is less than 10 bnUSD.
     if borrow_amount < 10:
         print("Sorry, the minimum loan size is 10 bnUSD.")
-        raise typer.Exit()
+        raise typer.die()
 
     balanced_loans = BalancedLoans(network)
 
@@ -72,7 +73,7 @@ def borrow(
             f"Sorry, you don't have enough collateral to borrow {format_number_display(borrow_amount, 0, 8)} bnUSD.\n"
             f"Your maximum loan size is {format_number_display(max_borrow_amount, 0, 8)} bnUSD."
         )
-        raise typer.Exit()
+        raise typer.die()
 
     # Ask use to confirm borrow
     if skip is False:
@@ -86,7 +87,7 @@ def borrow(
                 f"Please confirm you'd like to take a {format_number_display(borrow_amount, 0, 2)} bnUSD loan."
             )
         if not borrow_confirmation:
-            raise typer.Exit()
+            raise typer.die()
 
     transaction_result = balanced_loans.deposit_and_borrow(keystore, 0, to_loop(borrow_amount))
 
@@ -95,12 +96,8 @@ def borrow(
 
 @app.command()
 def deposit(
-    icx_deposit_amount: str = typer.Option(
-        0, "-icx", "--icx", callback=Callbacks.validate_transaction_value
-    ),
-    sicx_deposit_amount: str = typer.Option(
-        0, "-sicx", "--sicx", callback=Callbacks.validate_transaction_value
-    ),
+    asset: BalancedCollateralAsset = typer.Argument(..., case_sensitive=False),
+    amount: str = typer.Argument(..., callback=Callbacks.validate_transaction_value),
     keystore: str = typer.Option(
         Config.get_default_keystore(),
         "--keystore",
@@ -110,57 +107,95 @@ def deposit(
     network: str = typer.Option(
         Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet
     ),
+    max: bool = typer.Option(False, "--max", "-m"),
     skip: bool = typer.Option(False, "--skip", "-s"),
 ):
     balanced_loans = BalancedLoans(network)
 
-    wallet_address = keystore.get_address()
-    icx_balance = balanced_loans.query_icx_balance(wallet_address) - (2 * balanced_loans.EXA)
-    sicx_balance = balanced_loans.query_token_balance(wallet_address, "sICX")
-    icx_sicx_balance = icx_balance + sicx_balance
+    if asset == "icx":
+        icx_balance = balanced_loans.query_icx_balance(keystore.get_address())
+        max_icx_deposit_amount = icx_balance - 2 * balanced_loans.EXA
 
-    log(f"ICX Deposit Amount: {icx_deposit_amount}")
-    log(f"sICX Deposit Amount: {sicx_deposit_amount}")
-    log(f"ICX Balance: {icx_balance} ICX")
-    log(f"sICX Balance: {sicx_balance} sICX")
-    log(f"Total Collateral Asset Balance: {icx_sicx_balance} ICX/sICX")
+        if icx_balance < 2 * balanced_loans.EXA:
+            exit("Sorry, you need a minimum of 2 ICX to use Balanced.")
 
-    if skip is False:
-        if icx_deposit_amount and sicx_deposit_amount > 0:
-            deposit_confirmation = typer.confirm(
-                f"Please confirm you'd like to make the deposits below:\n"
-                f"{format_number_display(icx_deposit_amount, 18, 18)} ICX.\n"
-                f"{format_number_display(sicx_deposit_amount, 18, 18)} sICX."
+        log(
+            f"ICX Balance {icx_balance}\n"
+            f"Max ICX Deposit: {max_icx_deposit_amount}\n"
+            f"Deposit Amount: {amount}"
+        )
+
+        if amount > max_icx_deposit_amount:
+
+            print(
+                f"Sorry, you can't deposit {format_number_display(amount, 18, 18)} ICX.\n"
+                f"Your maximum deposit amount is {format_number_display(max_icx_deposit_amount, 18, 18)} ICX"
             )
-        elif icx_deposit_amount > 0 and sicx_deposit_amount == 0:
-            deposit_confirmation = typer.confirm(
-                f"Please confirm you'd like to make the deposits below:\n"
-                f"{format_number_display(icx_deposit_amount, 18, 18)} ICX.\n"
+
+            if skip is False:
+                deposit_adjustment_prompt = typer.confirm(
+                    f"Would you like to deposit {format_number_display(max_icx_deposit_amount, 18, 18)} instead?"
+                )
+                if deposit_adjustment_prompt:
+                    amount = max_icx_deposit_amount
+                else:
+                    die()
+            else:
+                die()
+
+        else:
+            if max is True:
+                amount = max_icx_deposit_amount
+
+            if skip is False:
+                confirmation_prompt = typer.confirm(
+                    f"Please confirm you'd like to deposit {format_number_display(amount, 18, 18)} ICX."
+                )
+                if not confirmation_prompt:
+                    die()
+            else:
+                die()
+
+        transaction_result = balanced_loans.deposit_icx(keystore, amount)
+
+    elif asset == "sicx":
+        sicx_balance = balanced_loans.query_token_balance(keystore.get_address(), "SICX")
+
+        log(f"sICX Balance {sicx_balance}\n" f"Deposit Amount: {amount}")
+
+        if amount > sicx_balance:
+            print(
+                f"Sorry, you can't deposit {format_number_display(amount, 18, 18)} sICX.\n"
+                f"Your maximum deposit amount is {format_number_display(sicx_balance, 18, 18)} sICX"
             )
-        elif icx_deposit_amount == 0 and sicx_deposit_amount > 0:
-            deposit_confirmation = typer.confirm(
-                f"Please confirm you'd like to make the deposits below:\n"
-                f"{format_number_display(sicx_deposit_amount, 18, 18)} sICX.\n"
-            )
-        # Raise exception and exit if confirmation is not given.
-        if not deposit_confirmation:
-            raise typer.Exit()
 
-    collateral_deposits = []
+            if skip is False:
+                deposit_adjustment_prompt = typer.confirm(
+                    f"Would you like to deposit {format_number_display(sicx_balance, 18, 18)} instead?"
+                )
+                if deposit_adjustment_prompt:
+                    amount = sicx_balance
+                else:
+                    die()
+            else:
+                die()
 
-    if icx_deposit_amount > 0:
-        print(f"Depositing {format_number_display(icx_deposit_amount, 18, 18)} ICX...")
-        icx_deposit = balanced_loans.deposit_icx(keystore, icx_deposit_amount)
-        collateral_deposits.append(("ICX", icx_deposit))
+        else:
+            if max is True:
+                amount = sicx_balance
 
-    if sicx_deposit_amount > 0:
-        print(f"Depositing {format_number_display(sicx_deposit_amount, 18, 18)} sICX...")
-        sicx_deposit = balanced_loans.deposit_sicx(keystore, sicx_deposit_amount)
-        collateral_deposits.append(("sICX", sicx_deposit))
+            if skip is False:
+                confirmation_prompt = typer.confirm(
+                    f"Please confirm you'd like to deposit {format_number_display(amount, 18, 18)} sICX."
+                )
+                if not confirmation_prompt:
+                    die()
+            else:
+                die()
 
-    if len(collateral_deposits) > 0:
-        for transaction in collateral_deposits:
-            print(f"{transaction[0]} Deposit: {transaction[1]['txHash']}")
+        transaction_result = balanced_loans.deposit_sicx(keystore, amount)
+
+    print_tx_hash(transaction_result)
 
 
 @app.command()

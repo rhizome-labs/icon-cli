@@ -1,3 +1,4 @@
+from enum import Enum
 from icon_cli.models.Icx import Icx
 
 
@@ -19,3 +20,8 @@ class Balanced(Icx):
 
     def __init__(self, network) -> None:
         super().__init__(network)
+
+
+class BalancedCollateralAsset(str, Enum):
+    icx = "icx"
+    sicx = "sicx"
