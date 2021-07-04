@@ -95,7 +95,12 @@ def borrow(
 
 @app.command()
 def deposit(
-    deposit_amount: str = typer.Argument(..., callback=Callbacks.validate_transaction_value),
+    icx_deposit_amount: str = typer.Option(
+        0, "-icx", "--icx", callback=Callbacks.validate_transaction_value
+    ),
+    sicx_deposit_amount: str = typer.Option(
+        0, "-sicx", "--sicx", callback=Callbacks.validate_transaction_value
+    ),
     keystore: str = typer.Option(
         Config.get_default_keystore(),
         "--keystore",
@@ -114,29 +119,48 @@ def deposit(
     sicx_balance = balanced_loans.query_token_balance(wallet_address, "sICX")
     icx_sicx_balance = icx_balance + sicx_balance
 
-    log(f"Deposit Amount: {deposit_amount}")
+    log(f"ICX Deposit Amount: {icx_deposit_amount}")
+    log(f"sICX Deposit Amount: {sicx_deposit_amount}")
     log(f"ICX Balance: {icx_balance} ICX")
     log(f"sICX Balance: {sicx_balance} sICX")
     log(f"Total Collateral Asset Balance: {icx_sicx_balance} ICX/sICX")
 
-    if deposit_amount > icx_sicx_balance:
-        print(
-            f"Sorry, you can't deposit {format_number_display(deposit_amount, 18, 18)} ICX.\n"
-            f"You only have {format_number_display(icx_balance, 18, 18)} ICX and {format_number_display(sicx_balance, 18, 18)} sICX."  # noqa 503
-        )
-
-    exit()
-
     if skip is False:
-        deposit_confirmation = typer.confirm(
-            f"Please confirm you'd like deposit {format_number_display(deposit_amount, 0, 4)} ICX."
-        )
+        if icx_deposit_amount and sicx_deposit_amount > 0:
+            deposit_confirmation = typer.confirm(
+                f"Please confirm you'd like to make the deposits below:\n"
+                f"{format_number_display(icx_deposit_amount, 18, 18)} ICX.\n"
+                f"{format_number_display(sicx_deposit_amount, 18, 18)} sICX."
+            )
+        elif icx_deposit_amount > 0 and sicx_deposit_amount == 0:
+            deposit_confirmation = typer.confirm(
+                f"Please confirm you'd like to make the deposits below:\n"
+                f"{format_number_display(icx_deposit_amount, 18, 18)} ICX.\n"
+            )
+        elif icx_deposit_amount == 0 and sicx_deposit_amount > 0:
+            deposit_confirmation = typer.confirm(
+                f"Please confirm you'd like to make the deposits below:\n"
+                f"{format_number_display(sicx_deposit_amount, 18, 18)} sICX.\n"
+            )
+        # Raise exception and exit if confirmation is not given.
         if not deposit_confirmation:
             raise typer.Exit()
 
-    transaction_result = balanced_loans.deposit_and_borrow(keystore, to_loop(deposit_amount), 0)
+    collateral_deposits = []
 
-    print_tx_hash(transaction_result)
+    if icx_deposit_amount > 0:
+        print(f"Depositing {format_number_display(icx_deposit_amount, 18, 18)} ICX...")
+        icx_deposit = balanced_loans.deposit_icx(keystore, icx_deposit_amount)
+        collateral_deposits.append(("ICX", icx_deposit))
+
+    if sicx_deposit_amount > 0:
+        print(f"Depositing {format_number_display(sicx_deposit_amount, 18, 18)} sICX...")
+        sicx_deposit = balanced_loans.deposit_sicx(keystore, sicx_deposit_amount)
+        collateral_deposits.append(("sICX", sicx_deposit))
+
+    if len(collateral_deposits) > 0:
+        for transaction in collateral_deposits:
+            print(f"{transaction[0]} Deposit: {transaction[1]['txHash']}")
 
 
 @app.command()

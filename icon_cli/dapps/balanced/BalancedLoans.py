@@ -72,11 +72,29 @@ class BalancedLoans(Balanced):
     # TRANSACTION FUNCTIONS #
     #########################
 
-    def deposit_and_borrow(self, wallet, deposit_amount: int = 0, borrow_amount: int = 0):
+    def borrow_bnusd(self, wallet, borrow_amount):
         params = {"_asset": "bnUSD", "_amount": borrow_amount}
         transaction = self.build_call_transaction(
-            wallet, self.BALANCED_LOANS_CONTRACT, deposit_amount, "depositAndBorrow", params
+            wallet, self.BALANCED_LOANS_CONTRACT, 0, "depositAndBorrow", params
         )
+        transaction_result = self.send_transaction(wallet, transaction)
+        return transaction_result
+
+    def deposit_icx(self, wallet, icx_deposit_amount: int = 0):
+        params = {"_asset": "bnUSD", "_amount": 0}
+        transaction = self.build_call_transaction(
+            wallet, self.BALANCED_LOANS_CONTRACT, icx_deposit_amount, "depositAndBorrow", params
+        )
+        transaction_result = self.send_transaction(wallet, transaction)
+        return transaction_result
+
+    def deposit_sicx(self, wallet, sicx_deposit_amount: int):
+        params = {
+            "_to": self.BALANCED_LOANS_CONTRACT,
+            "_value": sicx_deposit_amount,
+            "_data": "0x7b225f6173736574223a22222c225f616d6f756e74223a307d",
+        }
+        transaction = self.build_call_transaction(wallet, self.SICX_CONTRACT, 0, "transfer", params)
         transaction_result = self.send_transaction(wallet, transaction)
         return transaction_result
 
