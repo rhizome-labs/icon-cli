@@ -120,11 +120,19 @@ def deposit(
 
     if asset == "icx":
         icx_balance = balanced_loans.query_icx_balance(keystore.get_address())
+        minimum_balance = 2 * balanced_loans.EXA
+        max_icx_deposit_amount = int(icx_balance - minimum_balance)
 
-        max_icx_deposit_amount = int(icx_balance - (2 * balanced_loans.EXA))
+        # Set deposit amount to max_deposit_amount if --max is used.
+        if max is True:
+            amount = max_icx_deposit_amount
 
-        if max_icx_deposit_amount < 0:
-            exit("Sorry, you need at least 2 ICX to deposit collateral into Balanced.")
+        # Exit if balance is less than 2 ICX, or if amount is less than 0.
+        if icx_balance < minimum_balance or amount < 0:
+            die(
+                "Sorry, you need a minimum balance of 2 ICX to deposit collateral into Balanced.\n"
+                f"Your current balance is {format_number_display(icx_balance, 18, 18)} ICX."
+            )
 
         log(
             f"{icx_balance} {icx_balance / 10 ** 18} (ICX Balance)\n"
@@ -132,76 +140,46 @@ def deposit(
             f"{amount} (Deposit Amount)"
         )
 
-        if amount > max_icx_deposit_amount:
-
-            print(
+        # Exit if ICX balance is less than deposit amount.
+        if icx_balance < amount:
+            die(
                 f"Sorry, you can't deposit {format_number_display(amount, 18, 18)} ICX.\n"
                 f"Your maximum deposit amount is {format_number_display(max_icx_deposit_amount, 18, 18)} ICX"
             )
 
-            if skip is False:
-                deposit_adjustment_prompt = typer.confirm(
-                    f"Would you like to deposit {format_number_display(max_icx_deposit_amount, 18, 18)} instead?"
-                )
-                if deposit_adjustment_prompt:
-                    amount = max_icx_deposit_amount
-                else:
-                    die()
-            else:
+        if skip is False:
+            confirmation_prompt = typer.confirm(
+                f"Please confirm you'd like to deposit {format_number_display(amount, 18, 18)} ICX."
+            )
+            if not confirmation_prompt:
                 die()
 
-        else:
-            if max is True:
-                amount = max_icx_deposit_amount
-
-            if skip is False:
-                confirmation_prompt = typer.confirm(
-                    f"Please confirm you'd like to deposit {format_number_display(amount, 18, 18)} ICX."
-                )
-                if not confirmation_prompt:
-                    die()
-
-        if amount < 0:
-            die("Sorry, negative deposits are not allowed.")
-
-        print(f"Depositing {amount} ICX now...")
+        print(f"Depositing {format_number_display(amount, 18, 18)} ICX now...")
         transaction_result = balanced_loans.deposit_icx(keystore, amount)
 
-    elif asset == "sicx":
+    if asset == "sicx":
         sicx_balance = balanced_loans.query_token_balance(keystore.get_address(), "SICX")
 
         if sicx_balance <= 0:
             die("Sorry, you don't have any sICX to deposit.")
 
+        if max is True:
+            amount = sicx_balance
+
         log(f"sICX Balance {sicx_balance}\n" f"Deposit Amount: {amount}")
 
-        if amount > sicx_balance:
+        if sicx_balance < amount:
             print(
                 f"Sorry, you can't deposit {format_number_display(amount, 18, 18)} sICX.\n"
                 f"Your maximum deposit amount is {format_number_display(sicx_balance, 18, 18)} sICX"
             )
 
-            if skip is False:
-                deposit_adjustment_prompt = typer.confirm(
-                    f"Would you like to deposit {format_number_display(sicx_balance, 18, 18)} instead?"
-                )
-                if deposit_adjustment_prompt:
-                    amount = sicx_balance
-                else:
-                    die()
-            else:
+        if skip is False:
+            confirmation_prompt = typer.confirm(
+                f"Please confirm you'd like to deposit {format_number_display(amount, 18, 18)} sICX."
+            )
+            if not confirmation_prompt:
                 die()
-
-        else:
-            if max is True:
-                amount = sicx_balance
-
-            if skip is False:
-                confirmation_prompt = typer.confirm(
-                    f"Please confirm you'd like to deposit {format_number_display(amount, 18, 18)} sICX."
-                )
-                if not confirmation_prompt:
-                    die()
 
         print(f"Depositing {amount} sICX now...")
         transaction_result = balanced_loans.deposit_sicx(keystore, amount)
