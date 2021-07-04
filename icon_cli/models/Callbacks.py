@@ -16,13 +16,13 @@ class Callbacks:
 
     @staticmethod
     def enforce_mainnet(network):
-        if network != "mainnet":
+        if network.value != "mainnet":
             print(
                 f"Sorry, this command is only available on mainnet. Your network is currently set to {network}."
             )
             raise typer.Exit()
         else:
-            return network
+            return network.value
 
     @staticmethod
     def load_wallet_from_keystore(keystore_name: str):

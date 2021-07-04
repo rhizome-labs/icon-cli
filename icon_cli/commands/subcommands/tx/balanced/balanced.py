@@ -1,8 +1,10 @@
 import typer
 from icon_cli.commands.subcommands.tx.balanced import balanced_pool
+from decimal import Decimal
 from icon_cli.dapps.balanced.Balanced import BalancedCollateralAsset
 from icon_cli.dapps.balanced.BalancedLoans import BalancedLoans
 from icon_cli.dapps.balanced.BalancedDividends import BalancedDividends
+from icon_cli.models.Icx import IcxNetwork
 from icon_cli.models.Callbacks import Callbacks
 from icon_cli.models.Config import Config
 from icon_cli.utils import die, format_number_display, log, print_object, print_tx_hash, to_loop
@@ -97,15 +99,19 @@ def borrow(
 @app.command()
 def deposit(
     asset: BalancedCollateralAsset = typer.Argument(..., case_sensitive=False),
-    amount: str = typer.Argument(..., callback=Callbacks.validate_transaction_value),
+    amount: str = typer.Argument(0, callback=Callbacks.validate_transaction_value),
     keystore: str = typer.Option(
         Config.get_default_keystore(),
         "--keystore",
         "-k",
         callback=Callbacks.load_wallet_from_keystore,
     ),
-    network: str = typer.Option(
-        Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet
+    network: IcxNetwork = typer.Option(
+        Config.get_default_network(),
+        "--network",
+        "-n",
+        callback=Callbacks.enforce_mainnet,
+        case_sensitive=False,
     ),
     max: bool = typer.Option(False, "--max", "-m"),
     skip: bool = typer.Option(False, "--skip", "-s"),
@@ -114,15 +120,16 @@ def deposit(
 
     if asset == "icx":
         icx_balance = balanced_loans.query_icx_balance(keystore.get_address())
-        max_icx_deposit_amount = icx_balance - 2 * balanced_loans.EXA
 
-        if icx_balance < 2 * balanced_loans.EXA:
-            exit("Sorry, you need a minimum of 2 ICX to use Balanced.")
+        max_icx_deposit_amount = int(icx_balance - (2 * balanced_loans.EXA))
+
+        if max_icx_deposit_amount < 0:
+            exit("Sorry, you need at least 2 ICX to deposit collateral into Balanced.")
 
         log(
-            f"ICX Balance {icx_balance}\n"
-            f"Max ICX Deposit: {max_icx_deposit_amount}\n"
-            f"Deposit Amount: {amount}"
+            f"{icx_balance} {icx_balance / 10 ** 18} (ICX Balance)\n"
+            f"{max_icx_deposit_amount} {max_icx_deposit_amount / 10 ** 18} (Max ICX Deposit)\n"
+            f"{amount} (Deposit Amount)"
         )
 
         if amount > max_icx_deposit_amount:
@@ -153,9 +160,11 @@ def deposit(
                 )
                 if not confirmation_prompt:
                     die()
-            else:
-                die()
 
+        if amount < 0:
+            die("Sorry, negative deposits are not allowed.")
+
+        print(f"Depositing {amount} ICX now...")
         transaction_result = balanced_loans.deposit_icx(keystore, amount)
 
     elif asset == "sicx":
@@ -190,9 +199,8 @@ def deposit(
                 )
                 if not confirmation_prompt:
                     die()
-            else:
-                die()
 
+        print(f"Depositing {amount} sICX now...")
         transaction_result = balanced_loans.deposit_sicx(keystore, amount)
 
     print_tx_hash(transaction_result)

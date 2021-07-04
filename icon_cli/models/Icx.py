@@ -1,6 +1,7 @@
 import os
 import requests
 import typer
+from enum import Enum
 from functools import lru_cache
 from iconsdk.builder.call_builder import CallBuilder
 from iconsdk.builder.transaction_builder import (
@@ -261,3 +262,10 @@ class Icx:
                     sleep(1)
                     continue
             return transaction_result
+
+
+class IcxNetwork(str, Enum):
+    mainnet = "mainnet"
+    euljiro = "euljiro"
+    yeouido = "yeouido"
+    local = "local"

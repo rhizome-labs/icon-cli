@@ -23,16 +23,16 @@ def die(message: str = "Exiting now..."):
 
 
 def format_number_display(input, exa=18, dec=18):
+    print(type(input))
     if isinstance(input, str) and input[:2] == "0x":
         input = Decimal(int(input, 16) / 10 ** exa)
-        print(input)
-    elif isinstance(input, int):
+    elif isinstance(input, int) or isinstance(input, float):
         input = Decimal(input) / 10 ** exa
-
     if input % 1 == 0:
-        return "{:,.{}f}".format(input, 0)
+        output = "{:,.{}f}".format(input, 0)
     else:
-        return "{:,.{}f}".format(input, dec).rstrip("0")
+        output = "{:,.{}f}".format(input, dec).rstrip("0")
+    return output
 
 
 def from_loop(value):
