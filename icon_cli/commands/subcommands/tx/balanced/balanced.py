@@ -170,6 +170,9 @@ def deposit(
     elif asset == "sicx":
         sicx_balance = balanced_loans.query_token_balance(keystore.get_address(), "SICX")
 
+        if sicx_balance <= 0:
+            die("Sorry, you don't have any sICX to deposit.")
+
         log(f"sICX Balance {sicx_balance}\n" f"Deposit Amount: {amount}")
 
         if amount > sicx_balance:

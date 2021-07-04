@@ -23,7 +23,6 @@ def die(message: str = "Exiting now..."):
 
 
 def format_number_display(input, exa=18, dec=18):
-    print(type(input))
     if isinstance(input, str) and input[:2] == "0x":
         input = Decimal(int(input, 16) / 10 ** exa)
     elif isinstance(input, int) or isinstance(input, float):
