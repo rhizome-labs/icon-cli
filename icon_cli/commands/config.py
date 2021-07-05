@@ -1,7 +1,7 @@
 import typer
 from icon_cli.models.Config import Config
 from icon_cli.commands.subcommands.config import keystore
-from icon_cli.utils import print_json, print_object
+from icon_cli.utils import die, print_json, print_object
 
 app = typer.Typer()
 
@@ -14,5 +14,18 @@ def debug():
 
 
 @app.command()
+def init():
+    confirmation = typer.confirm(
+        "This will delete your existing config.yml file, and generate a new config.yml file. Please confirm."
+    )
+    if confirmation:
+        Config.delete_config()
+        Config.initialize_config()
+    else:
+        die()
+
+
+@app.command()
 def inspect():
-    print_json(Config.inspect_config())
+    config = Config.inspect_config()
+    print_json(config)

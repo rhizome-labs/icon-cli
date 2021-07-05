@@ -33,31 +33,6 @@ class Config:
         "local": ["http://localhost:9000", 3],
     }
 
-    @classmethod
-    def initialize_config(cls) -> None:
-
-        required_directories = [
-            cls.config_dir,
-            cls.data_dir,
-            cls.history_dir,
-            cls.keystore_dir,
-        ]
-
-        for directory in required_directories:
-            if not Path(directory).is_dir():
-                print(f"{directory} does not exist. Creating directory now...")
-                cls._create_directory(directory)
-
-        if not os.path.exists(cls.config_file):
-            print(f"Creating config file at {cls.config_file} now...")
-            with open(cls.config_file, "w+", encoding="utf-8") as config_file:
-                yaml.dump(cls.default_config, config_file, sort_keys=True)
-                print(f"Config file has been successfully created at {cls.config_file}.")
-
-    @classmethod
-    def inspect_config(cls) -> dict:
-        return cls._read_config()
-
     ######################
     # KEYSTORE FUNCTIONS #
     ######################
@@ -182,6 +157,35 @@ class Config:
     ##############################
     # EXTERNAL UTILITY FUNCTIONS #
     ##############################
+
+    @classmethod
+    def delete_config(cls) -> None:
+        cls._delete_file(cls.config_file)
+
+    @classmethod
+    def initialize_config(cls) -> None:
+
+        required_directories = [
+            cls.config_dir,
+            cls.data_dir,
+            cls.history_dir,
+            cls.keystore_dir,
+        ]
+
+        for directory in required_directories:
+            if not Path(directory).is_dir():
+                print(f"{directory} does not exist. Creating directory now...")
+                cls._create_directory(directory)
+
+        if not os.path.exists(cls.config_file):
+            print(f"Creating config file at {cls.config_file} now...")
+            with open(cls.config_file, "w+", encoding="utf-8") as config_file:
+                yaml.dump(cls.default_config, config_file, sort_keys=True)
+                print(f"Config file has been successfully created at {cls.config_file}.")
+
+    @classmethod
+    def inspect_config(cls) -> dict:
+        return cls._read_config()
 
     @classmethod
     def list_imported_keystore_names(cls):
