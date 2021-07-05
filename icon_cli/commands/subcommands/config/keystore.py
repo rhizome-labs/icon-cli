@@ -33,7 +33,9 @@ def add(
 
 @app.command()
 def inspect(
-    keystore_name=typer.Argument(Config.get_default_keystore(), callback=Callbacks.validate_keystore_name),
+    keystore_name=typer.Argument(
+        Config.get_default_keystore(), callback=Callbacks.validate_keystore_name
+    ),
     all: bool = typer.Option(False, "--all", "-a"),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
