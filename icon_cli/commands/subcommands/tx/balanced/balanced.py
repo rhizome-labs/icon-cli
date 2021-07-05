@@ -1,6 +1,5 @@
 import typer
 from icon_cli.commands.subcommands.tx.balanced import balanced_pool
-from decimal import Decimal
 from icon_cli.dapps.balanced.Balanced import BalancedCollateralAsset
 from icon_cli.dapps.balanced.BalancedLoans import BalancedLoans
 from icon_cli.dapps.balanced.BalancedDividends import BalancedDividends
@@ -38,13 +37,11 @@ def borrow(
 ):
     # Raise exception if both --max and --threshold are specified.
     if max is True and threshold is True:
-        print("Sorry, you can't use --max and --threshold at the same time. Please choose one.")
-        raise typer.die()
+        die("Sorry, you can't use --max and --threshold at the same time. Please choose one.")
 
     # Raise exception if loan size is less than 10 bnUSD.
     if borrow_amount < 10:
-        print("Sorry, the minimum loan size is 10 bnUSD.")
-        raise typer.die()
+        die("Sorry, the minimum loan size is 10 bnUSD.")
 
     balanced_loans = BalancedLoans(network)
 
@@ -75,7 +72,7 @@ def borrow(
             f"Sorry, you don't have enough collateral to borrow {format_number_display(borrow_amount, 0, 8)} bnUSD.\n"
             f"Your maximum loan size is {format_number_display(max_borrow_amount, 0, 8)} bnUSD."
         )
-        raise typer.die()
+        die()
 
     # Ask use to confirm borrow
     if skip is False:
@@ -89,7 +86,7 @@ def borrow(
                 f"Please confirm you'd like to take a {format_number_display(borrow_amount, 0, 2)} bnUSD loan."
             )
         if not borrow_confirmation:
-            raise typer.die()
+            die()
 
     transaction_result = balanced_loans.deposit_and_borrow(keystore, 0, to_loop(borrow_amount))
 
