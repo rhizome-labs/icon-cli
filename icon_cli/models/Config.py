@@ -90,6 +90,66 @@ class Config:
             if keystore_name == imported_keystore["keystore_name"]:
                 return imported_keystore["keystore_address"]
 
+    @classmethod
+    def import_keystore(cls, keystore_path: PosixPath) -> None:
+        # Get keystore address.
+        _, keystore_address, keystore_hash = cls._read_keystore(keystore_path)  # noqa 503
+
+        # Read icon-cli configuration, and get keystore config.
+        config = cls._read_config()
+        default_keystore_config = config["default_keystore"]
+        keystore_config = config["keystores"]
+
+        # Check if address is already used in imported keystores.
+        if len(keystore_config) > 0:
+            for imported_keystore in keystore_config:
+                if keystore_address == imported_keystore["keystore_address"]:
+                    print(
+                        f"An imported keystore ({imported_keystore['keystore_name']}) with the address {keystore_address} already exists."  # noqa 503
+                    )
+                    print("Exiting now...")
+                    raise typer.Exit()
+
+        # Prompt user to specify a nickname for the keystore.
+        keystore_name = typer.prompt("Please specify a nickname for this keystore")
+
+        if len(keystore_config) > 0:
+            for imported_keystore in keystore_config:
+                if keystore_name == imported_keystore["keystore_name"]:
+                    print(f"An imported keystore named {keystore_name} already exists.")
+                    print("Exiting now...")
+                    raise typer.Exit()
+
+        # If there are no existing keystores, or if default keystore is not set, prompt user to choose whether to set keystore as default. # noqa 503
+        if default_keystore_config is None:
+            default_keystore_prompt = typer.confirm(
+                f"There is no existing keystore. Would you like to make {keystore_name} the default keystore?"
+            )
+            if default_keystore_prompt:
+                with open(cls.config_file, "r+", encoding="utf-8") as config_file:
+                    cls._write_config("default_keystore", keystore_name)
+
+        # Copy keystore to ~/.icon-cli/keystore
+        cls._copy_file(f"{keystore_path}", f"{cls.config_dir}/keystore/{keystore_hash}.icx")
+
+        # Create JSON payload to write to config.
+        keystore_data = {
+            "keystore_name": keystore_name,
+            "keystore_address": keystore_address,
+            "keystore_hash": keystore_hash,
+            "keystore_filename": f"{keystore_hash}.icx",
+        }
+
+        # Write keystore name and address to config.json.
+        with open(cls.config_file, "r+", encoding="utf-8") as config_file:
+            config = yaml.full_load(config_file)
+            config["keystores"].append(keystore_data)
+            config_file.seek(0)
+            yaml.dump(config, config_file, sort_keys=True)
+            config_file.truncate()
+
+        print("Keystore has been imported successfully.")
+
     #####################
     # NETWORK FUNCTIONS #
     #####################
