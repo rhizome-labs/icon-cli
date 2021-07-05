@@ -10,7 +10,6 @@ from icon_cli.utils import (
     die,
     format_number_display,
     log,
-    print_json,
     print_object,
     print_tx_hash,
     to_loop,
