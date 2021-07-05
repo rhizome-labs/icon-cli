@@ -6,7 +6,15 @@ from icon_cli.dapps.balanced.BalancedDividends import BalancedDividends
 from icon_cli.models.Icx import IcxNetwork
 from icon_cli.models.Callbacks import Callbacks
 from icon_cli.models.Config import Config
-from icon_cli.utils import die, format_number_display, log, print_object, print_tx_hash, to_loop
+from icon_cli.utils import (
+    die,
+    format_number_display,
+    log,
+    print_json,
+    print_object,
+    print_tx_hash,
+    to_loop,
+)
 from rich import print
 
 app = typer.Typer()
@@ -28,8 +36,12 @@ def borrow(
         "-k",
         callback=Callbacks.load_wallet_from_keystore,
     ),
-    network: str = typer.Option(
-        Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet
+    network: IcxNetwork = typer.Option(
+        Config.get_default_network(),
+        "--network",
+        "-n",
+        callback=Callbacks.enforce_mainnet,
+        case_sensitive=False,
     ),
     skip: bool = typer.Option(False, "--skip", "-s"),
     max: bool = typer.Option(False, "--max", "-max"),
@@ -192,8 +204,12 @@ def distribute(
         "-k",
         callback=Callbacks.load_wallet_from_keystore,
     ),
-    network: str = typer.Option(
-        Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet
+    network: IcxNetwork = typer.Option(
+        Config.get_default_network(),
+        "--network",
+        "-n",
+        callback=Callbacks.enforce_mainnet,
+        case_sensitive=False,
     ),
 ):
     balanced_dividends = BalancedDividends(network)
@@ -216,11 +232,12 @@ def liquidate(
         "-k",
         callback=Callbacks.load_wallet_from_keystore,
     ),
-    network: str = typer.Option(
+    network: IcxNetwork = typer.Option(
         Config.get_default_network(),
         "--network",
         "-n",
         callback=Callbacks.enforce_mainnet,
+        case_sensitive=False,
     ),
 ):
     balanced_loans = BalancedLoans(network)
@@ -241,11 +258,12 @@ def order(
 def provide(
     pool: str = typer.Argument(...),
     amount: int = typer.Argument(...),
-    network: str = typer.Option(
+    network: IcxNetwork = typer.Option(
         Config.get_default_network(),
         "--network",
         "-n",
         callback=Callbacks.enforce_mainnet,
+        case_sensitive=False,
     ),
 ):
     pass
@@ -254,11 +272,12 @@ def provide(
 @app.command()
 def retire_bnusd(
     amount: int = typer.Argument(...),
-    network: str = typer.Option(
+    network: IcxNetwork = typer.Option(
         Config.get_default_network(),
         "--network",
         "-n",
         callback=Callbacks.enforce_mainnet,
+        case_sensitive=False,
     ),
 ):
     pass
@@ -268,11 +287,35 @@ def retire_bnusd(
 def swap(
     source_asset: str = typer.Argument(...),
     destination_asset: str = typer.Argument(...),
-    network: str = typer.Option(
+    network: IcxNetwork = typer.Option(
         Config.get_default_network(),
         "--network",
         "-n",
         callback=Callbacks.enforce_mainnet,
+        case_sensitive=False,
     ),
 ):
     pass
+
+
+@app.command()
+def withdraw(
+    keystore: str = typer.Option(
+        Config.get_default_keystore(),
+        "--keystore",
+        "-k",
+        callback=Callbacks.load_wallet_from_keystore,
+    ),
+    amount: str = typer.Argument(0, callback=Callbacks.validate_transaction_value),
+    network: IcxNetwork = typer.Option(
+        Config.get_default_network(),
+        "--network",
+        "-n",
+        callback=Callbacks.enforce_mainnet,
+        case_sensitive=False,
+    ),
+):
+    balanced_loans = BalancedLoans(network)
+
+    transaction_result = balanced_loans.withdraw_collateral(keystore, amount)
+    print_tx_hash(transaction_result)

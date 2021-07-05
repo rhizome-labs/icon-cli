@@ -125,6 +125,14 @@ class BalancedLoans(Balanced):
             print(f"Sorry, {address} does not have a position that can be liquidated.")
             raise typer.Exit()
 
+    def withdraw_collateral(self, wallet, amount: int):
+        params = {"_value": amount}
+        transaction = self.build_call_transaction(
+            wallet, self.BALANCED_LOANS_CONTRACT, 0, "withdrawCollateral", params
+        )
+        transaction_result = self.send_transaction(wallet, transaction)
+        return transaction_result
+
     ##############################
     # INTERNAL UTILITY FUNCTIONS #
     ##############################
@@ -141,7 +149,7 @@ class BalancedLoans(Balanced):
                 if k in ["collateral", "ratio", "total_debt"]:
                     value = hex_to_int(v)
                     if value != 0:
-                        position[k] = hex_to_int(v) / 10 ** 18
+                        position[k] = hex_to_int(v)
                     else:
                         position[k] = hex_to_int(v)
                 else:
@@ -150,7 +158,7 @@ class BalancedLoans(Balanced):
                 for asset, amount in position["assets"].items():
                     value = hex_to_int(amount)
                     if value != 0:
-                        position["assets"][asset] = hex_to_int(amount) / 10 ** 18
+                        position["assets"][asset] = hex_to_int(amount)
                     else:
                         position["assets"][asset] = hex_to_int(amount)
         return position
