@@ -6,6 +6,7 @@ from getpass import getpass
 from iconsdk.exception import KeyStoreException
 from iconsdk.wallet.wallet import KeyWallet
 from icon_cli.models.Config import Config
+from icon_cli.models.Icx import IcxNetwork
 from icon_cli.utils import to_loop
 from pathlib import PosixPath
 
@@ -15,7 +16,7 @@ class Callbacks:
         pass
 
     @staticmethod
-    def enforce_mainnet(network):
+    def enforce_mainnet(network: IcxNetwork):
         if network.value != "mainnet":
             print(
                 f"Sorry, this command is only available on mainnet. Your network is currently set to {network}."
@@ -80,7 +81,7 @@ class Callbacks:
 
     @staticmethod
     def validate_keystore_integrity(keystore_path: PosixPath):
-        if keystore_path.stat().st_size == 512:  # noqa 503
+        if keystore_path.stat().st_size == 509 or keystore_path.stat().st_size == 512:  # noqa 503
             return keystore_path
         else:
             print(f"{keystore_path} is not a valid keystore file.")

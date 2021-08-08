@@ -1,8 +1,10 @@
+from icon_cli.commands.subcommands.tx.balanced import balanced
 import typer
 from concurrent.futures import ThreadPoolExecutor
 from icon_cli.dapps.cps.Cps import Cps
 from icon_cli.models.Callbacks import Callbacks
 from icon_cli.models.Config import Config
+from icon_cli.models.Icx import IcxNetwork
 from icon_cli.models.Prep import Prep
 from icon_cli.utils import format_number_display, print_json, print_object, print_table
 from rich import box
@@ -19,8 +21,12 @@ def debug():
 
 @app.command()
 def balance(
-    network: str = typer.Option(
-        Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet
+    network: IcxNetwork = typer.Option(
+        Config.get_default_network(),
+        "--network",
+        "-n",
+        callback=Callbacks.enforce_mainnet,
+        case_sensitive=False,
     ),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
@@ -31,16 +37,20 @@ def balance(
     balance = cps.query_cps_balance()
 
     if format == "json":
-        response = {"cps_icx_balance": balance}
+        response = {"cps_icx_balance": format_number_display(balance, 0, 18)}
         print_json(response)
     else:
-        print(f"CPS Balance: {format_number_display(balance)} ICX")
+        print(f"CPS Balance: {format_number_display(balance, 0, 4)} ICX")
 
 
 @app.command()
 def period(
-    network: str = typer.Option(
-        Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet
+    network: IcxNetwork = typer.Option(
+        Config.get_default_network(),
+        "--network",
+        "-n",
+        callback=Callbacks.enforce_mainnet,
+        case_sensitive=False,
     ),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
@@ -50,13 +60,36 @@ def period(
     if format == "json":
         print_json(period_status)
     else:
-        print()
+        table = Table(
+            box=box.DOUBLE,
+            show_lines=True,
+            show_header=False,
+            title="CPS Period Status",
+            title_justify="left",
+            title_style="bold",
+        )
 
+        table.add_column("Key", justify="left")
+        table.add_column("Value", justify="left")
+
+        table.add_row("Current Block", format_number_display(period_status["current_block"], 0, 0))
+        table.add_row("Next Block", format_number_display(period_status["next_block"], 0, 0))
+        table.add_row("Remaining Time", format_number_display(period_status["remaining_time"], 0, 0))
+        table.add_row("Period Name", period_status["period_name"])
+        table.add_row("Previous Period Name", period_status["previous_period_name"])
+        table.add_row("Period Span", format_number_display(period_status["period_span"], 0, 0))
+
+        print_table(table)
+        
 
 @app.command()
 def preps(
-    network: str = typer.Option(
-        Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet
+    network: IcxNetwork = typer.Option(
+        Config.get_default_network(),
+        "--network",
+        "-n",
+        callback=Callbacks.enforce_mainnet,
+        case_sensitive=False,
     ),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
@@ -82,8 +115,12 @@ def preps(
 @app.command()
 def proposal(
     address: str = typer.Argument(..., callback=Callbacks.validate_icx_address),
-    network: str = typer.Option(
-        Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet
+    network: IcxNetwork = typer.Option(
+        Config.get_default_network(),
+        "--network",
+        "-n",
+        callback=Callbacks.enforce_mainnet,
+        case_sensitive=False,
     ),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
@@ -98,8 +135,12 @@ def proposal(
 
 @app.command()
 def active_proposals(
-    network: str = typer.Option(
-        Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet
+    network: IcxNetwork = typer.Option(
+        Config.get_default_network(),
+        "--network",
+        "-n",
+        callback=Callbacks.enforce_mainnet,
+        case_sensitive=False,
     ),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):

@@ -251,6 +251,6 @@ class Config:
             keystore_json = json.load(keystore_file)
             keystore_address = keystore_json["address"]
         keystore_hash = hashlib.md5(
-            open("/Users/brianli/Desktop/testnet-keystore", "rb").read()
+            open(keystore_path, "rb").read()
         ).hexdigest()
         return keystore_json, keystore_address, keystore_hash

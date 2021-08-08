@@ -2,7 +2,7 @@ import typer
 from icon_cli.commands.subcommands.tx.balanced import balanced
 from icon_cli.models.Callbacks import Callbacks
 from icon_cli.models.Config import Config
-from icon_cli.models.Icx import Icx
+from icon_cli.models.Icx import Icx, IcxNetwork
 from icon_cli.utils import print_object
 from rich import print
 
@@ -31,8 +31,12 @@ def send(
         "-k",
         callback=Callbacks.load_wallet_from_keystore,
     ),
-    network: str = typer.Option(
-        Config.get_default_network(), "--network", "-n", callback=Callbacks.validate_network
+    network: IcxNetwork = typer.Option(
+        Config.get_default_network(),
+        "--network",
+        "-n",
+        callback=Callbacks.enforce_mainnet,
+        case_sensitive=False,
     ),
     simulation: bool = typer.Option(False, "--simulate", "-s"),
     confirmation: bool = typer.Option(True, "--confirm", "-c"),

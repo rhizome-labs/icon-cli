@@ -3,6 +3,7 @@ from datetime import datetime
 from icon_cli.dapps.balanced.BalancedLoans import BalancedLoans
 from icon_cli.models.Callbacks import Callbacks
 from icon_cli.models.Config import Config
+from icon_cli.models.Icx import IcxNetwork
 from icon_cli.utils import format_number_display, print_json, print_object, print_table
 from rich import box
 from rich import print
@@ -20,8 +21,12 @@ def debug():
 @app.command()
 def position(
     address: str = typer.Argument(..., callback=Callbacks.validate_icx_address),
-    network: str = typer.Option(
-        Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet
+    network: IcxNetwork = typer.Option(
+        Config.get_default_network(),
+        "--network",
+        "-n",
+        callback=Callbacks.enforce_mainnet,
+        case_sensitive=False,
     ),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
@@ -73,8 +78,12 @@ def position(
 
 @app.command()
 def position_count(
-    network: str = typer.Option(
-        Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet
+    network: IcxNetwork = typer.Option(
+        Config.get_default_network(),
+        "--network",
+        "-n",
+        callback=Callbacks.enforce_mainnet,
+        case_sensitive=False,
     ),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
@@ -97,8 +106,12 @@ def positions(
     max_collateralization: int = typer.Option(300, "--max-collateralization", "-max"),
     sort_key: str = typer.Option(None, "--sort", "-k"),
     reverse: bool = typer.Option(False, "--reverse", "-r"),
-    network: str = typer.Option(
-        Config.get_default_network(), "--network", "-n", callback=Callbacks.enforce_mainnet
+    network: IcxNetwork = typer.Option(
+        Config.get_default_network(),
+        "--network",
+        "-n",
+        callback=Callbacks.enforce_mainnet,
+        case_sensitive=False,
     ),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):

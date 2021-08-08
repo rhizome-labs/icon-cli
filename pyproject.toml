@@ -5,7 +5,7 @@ description = ""
 authors = ["Brian Li <brian@brianli.com>"]
 
 [tool.poetry.scripts]
-icon = "icon_cli.main:app"
+icon-cli = "icon_cli.main:app"
 
 [tool.poetry.dependencies]
 python = "^3.8"

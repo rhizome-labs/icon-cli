@@ -2,7 +2,7 @@ import typer
 from icon_cli.commands.subcommands.query import balanced, cps, gov
 from icon_cli.models.Callbacks import Callbacks
 from icon_cli.models.Config import Config
-from icon_cli.models.Icx import Icx
+from icon_cli.models.Icx import Icx, IcxNetwork
 from icon_cli.utils import print_json, print_object
 from rich import print
 
@@ -21,8 +21,12 @@ def debug():
 @app.command()
 def account(
     address: str = typer.Argument(..., callback=Callbacks.validate_icx_address),
-    network: str = typer.Option(
-        Config.get_default_network(), "--network", "-n", callback=Callbacks.validate_network
+    network: IcxNetwork = typer.Option(
+        Config.get_default_network(),
+        "--network",
+        "-n",
+        callback=Callbacks.enforce_mainnet,
+        case_sensitive=False,
     ),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
@@ -38,8 +42,12 @@ def account(
 @app.command()
 def balance(
     address: str = typer.Argument(..., callback=Callbacks.validate_icx_address),
-    network: str = typer.Option(
-        Config.get_default_network(), "--network", "-n", callback=Callbacks.validate_network
+    network: IcxNetwork = typer.Option(
+        Config.get_default_network(),
+        "--network",
+        "-n",
+        callback=Callbacks.enforce_mainnet,
+        case_sensitive=False,
     ),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
@@ -55,8 +63,12 @@ def balance(
 @app.command()
 def block(
     block: int = typer.Argument(0, callback=Callbacks.validate_block),
-    network: str = typer.Option(
-        Config.get_default_network(), "--network", "-n", callback=Callbacks.validate_network
+    network: IcxNetwork = typer.Option(
+        Config.get_default_network(),
+        "--network",
+        "-n",
+        callback=Callbacks.enforce_mainnet,
+        case_sensitive=False,
     ),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
@@ -74,8 +86,12 @@ def block(
 
 @app.command()
 def supply(
-    network: str = typer.Option(
-        Config.get_default_network(), "--network", "-n", callback=Callbacks.validate_network
+    network: IcxNetwork = typer.Option(
+        Config.get_default_network(),
+        "--network",
+        "-n",
+        callback=Callbacks.enforce_mainnet,
+        case_sensitive=False,
     ),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
@@ -89,8 +105,12 @@ def supply(
 @app.command()
 def transaction(
     transaction_hash: str = typer.Argument(...),
-    network: str = typer.Option(
-        Config.get_default_network(), "--network", "-n", callback=Callbacks.validate_network
+    network: IcxNetwork = typer.Option(
+        Config.get_default_network(),
+        "--network",
+        "-n",
+        callback=Callbacks.enforce_mainnet,
+        case_sensitive=False,
     ),
     format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
