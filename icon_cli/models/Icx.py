@@ -16,7 +16,7 @@ from iconsdk.wallet.wallet import KeyWallet
 from iconsdk.providers.http_provider import HTTPProvider
 from iconsdk.signed_transaction import SignedTransaction
 from icon_cli.models.Config import Config
-from icon_cli.utils import log
+from icon_cli.utils import hex_to_int, log
 from dotenv import load_dotenv
 from getpass import getpass
 from random import randint
@@ -65,6 +65,13 @@ class Icx:
     def query_block(self, block: int):
         block = self.icon_service.get_block(block)
         return block
+
+    def query_claimable_iscore(self, address: str):
+        params = {"address": address}
+        result = self.call(self.ICX_GOVERNANCE_CONTRACT_0, "queryIScore", params)
+        for k, v in result.items():
+            result[k] = hex_to_int(v)
+        return result
 
     def query_icx_balance(self, address: str):
         balance = self.icon_service.get_balance(address)
@@ -123,9 +130,7 @@ class Icx:
             log(e)
             raise typer.Exit()
 
-    def build_call_transaction(
-        self, wallet, to, value: int = 0, method: str = None, params: dict = {}
-    ):
+    def build_call_transaction(self, wallet, to, value: int = 0, method: str = None, params: dict = {}):
         try:
             transaction = (
                 CallTransactionBuilder()

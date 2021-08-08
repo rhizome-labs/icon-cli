@@ -1,4 +1,3 @@
-from icon_cli.commands.subcommands.tx.balanced import balanced
 import typer
 from concurrent.futures import ThreadPoolExecutor
 from icon_cli.dapps.cps.Cps import Cps
@@ -6,7 +5,13 @@ from icon_cli.models.Callbacks import Callbacks
 from icon_cli.models.Config import Config
 from icon_cli.models.Icx import IcxNetwork
 from icon_cli.models.Prep import Prep
-from icon_cli.utils import format_number_display, print_json, print_object, print_table
+from icon_cli.utils import (
+    format_number_display,
+    kv_table,
+    print_json,
+    print_object,
+    print_table
+)
 from rich import box
 from rich import print
 from rich.table import Table
@@ -60,27 +65,16 @@ def period(
     if format == "json":
         print_json(period_status)
     else:
-        table = Table(
-            box=box.DOUBLE,
-            show_lines=True,
-            show_header=False,
-            title="CPS Period Status",
-            title_justify="left",
-            title_style="bold",
-        )
+        rows = [
+            ["Current Block", format_number_display(period_status["current_block"], 0, 0)],
+            ["Next Block", format_number_display(period_status["next_block"], 0, 0)],
+            ["Remaining Time", format_number_display(period_status["remaining_time"], 0, 0)],
+            ["Period Name", period_status["period_name"]],
+            ["Previous Period Name", period_status["previous_period_name"]],
+            ["Period Span", format_number_display(period_status["period_span"], 0, 0)],
+        ]
+        kv_table(rows, "CPS Period Status")
 
-        table.add_column("Key", justify="left")
-        table.add_column("Value", justify="left")
-
-        table.add_row("Current Block", format_number_display(period_status["current_block"], 0, 0))
-        table.add_row("Next Block", format_number_display(period_status["next_block"], 0, 0))
-        table.add_row("Remaining Time", format_number_display(period_status["remaining_time"], 0, 0))
-        table.add_row("Period Name", period_status["period_name"])
-        table.add_row("Previous Period Name", period_status["previous_period_name"])
-        table.add_row("Period Span", format_number_display(period_status["period_span"], 0, 0))
-
-        print_table(table)
-        
 
 @app.command()
 def preps(

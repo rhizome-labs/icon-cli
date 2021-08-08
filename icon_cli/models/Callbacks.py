@@ -130,3 +130,21 @@ class Callbacks:
             raise typer.Exit()
         else:
             return to_loop(transaction_value)
+
+    @staticmethod
+    def validate_nonzero_transaction_value(transaction_value: str):
+        try:
+            # Try to convert transaction_value to int.
+            transaction_value = int(transaction_value)
+        except ValueError:
+            # If there is a ValueError, try to convert transaction_value to Decimal.
+            try:
+                transaction_value = Decimal(transaction_value)
+            except Exception:
+                print(f"Sorry, {transaction_value} is not a number.")
+                raise typer.Exit()
+        if transaction_value <= 0:
+            print(f"Sorry, {transaction_value} is invalid. Please provide a value greater than 0.")
+            raise typer.Exit()
+        else:
+            return to_loop(transaction_value)

@@ -1,5 +1,5 @@
 import typer
-from icon_cli.commands.subcommands.tx.balanced import balanced
+from icon_cli.commands.subcommands.tx import balanced, gov
 from icon_cli.models.Callbacks import Callbacks
 from icon_cli.models.Config import Config
 from icon_cli.models.Icx import Icx, IcxNetwork
@@ -9,6 +9,7 @@ from rich import print
 app = typer.Typer()
 
 app.add_typer(balanced.app, name="balanced")
+app.add_typer(gov.app, name="gov")
 
 
 @app.command()

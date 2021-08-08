@@ -4,9 +4,29 @@ import os
 import typer
 from decimal import Decimal
 from dotenv import load_dotenv
-from rich import inspect, print
+from rich import box, inspect, print
 from rich.logging import RichHandler
 from rich.console import Console
+from rich.table import Table
+
+
+def kv_table(rows: list, title="None"):
+    table = Table(
+            box=box.DOUBLE,
+            show_lines=True,
+            show_header=False,
+            title=title,
+            title_justify="left",
+            title_style="bold",
+        )
+
+    table.add_column("Key", justify="left")
+    table.add_column("Value", justify="left")
+
+    for row in rows:
+        table.add_row(row[0], row[1])
+
+    print_table(table)
 
 
 def enforce_mainnet(network):
@@ -22,7 +42,7 @@ def die(message: str = "Exiting now..."):
     raise typer.Exit()
 
 
-def format_number_display(input, exa=18, dec=18):
+def format_number_display(input, exa=0, dec=4):
     if isinstance(input, str) and input[:2] == "0x":
         input = Decimal(int(input, 16) / 10 ** exa)
     elif isinstance(input, int) or isinstance(input, float):
@@ -52,15 +72,16 @@ def log(message):
     if os.getenv("ENV") == "DEBUG":
         log_level = "DEBUG"
     else:
-        log_level = "ERROR"
+        log_level = "INFO"
+
     logging.basicConfig(
         level=log_level, format="%(message)s", datefmt="[%X]", handlers=[RichHandler()]
     )
+    
     log = logging.getLogger("rich")
+
     if log_level == "DEBUG":
         log.debug(message)
-    else:
-        log.error(message)
 
 
 def print_json(input):

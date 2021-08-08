@@ -1,5 +1,4 @@
 import typer
-from icon_cli.commands.subcommands.tx.balanced import balanced_pool
 from icon_cli.dapps.balanced.Balanced import BalancedCollateralAsset
 from icon_cli.dapps.balanced.BalancedLoans import BalancedLoans
 from icon_cli.dapps.balanced.BalancedDividends import BalancedDividends
@@ -17,8 +16,6 @@ from icon_cli.utils import (
 from rich import print
 
 app = typer.Typer()
-
-app.add_typer(balanced_pool.app, name="pool")
 
 
 @app.command()
@@ -80,8 +77,8 @@ def borrow(
     # Raise exception if borrow_amount is greater than max_borrow_amount.
     if borrow_amount > max_borrow_amount:
         print(
-            f"Sorry, you don't have enough collateral to borrow {format_number_display(borrow_amount, 0, 8)} bnUSD.\n"
-            f"Your maximum loan size is {format_number_display(max_borrow_amount, 0, 8)} bnUSD."
+            f"Sorry, you don't have enough collateral to borrow {format_number_display(borrow_amount, 18, 8)} bnUSD.\n"
+            f"Your maximum loan size is {format_number_display(max_borrow_amount, 18, 8)} bnUSD."
         )
         die()
 
@@ -125,6 +122,9 @@ def deposit(
     skip: bool = typer.Option(False, "--skip", "-s"),
 ):
     balanced_loans = BalancedLoans(network)
+
+    if amount <= 0:
+        die("Sorry, you need to deposit more than 0 ICX.") 
 
     if asset == "icx":
         icx_balance = balanced_loans.query_icx_balance(keystore.get_address())
@@ -305,7 +305,7 @@ def withdraw(
         "-k",
         callback=Callbacks.load_wallet_from_keystore,
     ),
-    amount: str = typer.Argument(0, callback=Callbacks.validate_transaction_value),
+    amount: str = typer.Argument(0, callback=Callbacks.validate_nonzero_transaction_value),
     network: IcxNetwork = typer.Option(
         Config.get_default_network(),
         "--network",
