@@ -2,6 +2,7 @@ import typer
 from icon_cli.dapps.balanced.Balanced import BalancedCollateralAsset
 from icon_cli.dapps.balanced.BalancedLoans import BalancedLoans
 from icon_cli.dapps.balanced.BalancedDividends import BalancedDividends
+from icon_cli.dapps.balanced.BalancedGovernance import BalancedGovernance
 from icon_cli.models.Icx import IcxNetwork
 from icon_cli.models.Callbacks import Callbacks
 from icon_cli.models.Config import Config
@@ -317,4 +318,27 @@ def withdraw(
     balanced_loans = BalancedLoans(network)
 
     transaction_result = balanced_loans.withdraw_collateral(keystore, amount)
+    print_tx_hash(transaction_result)
+
+
+@app.command()
+def execute_vote(
+    vote_index: int = typer.Argument(...),
+    keystore: str = typer.Option(
+        Config.get_default_keystore(),
+        "--keystore",
+        "-k",
+        callback=Callbacks.load_wallet_from_keystore,
+    ),
+    network: IcxNetwork = typer.Option(
+        Config.get_default_network(),
+        "--network",
+        "-n",
+        callback=Callbacks.enforce_mainnet,
+        case_sensitive=False,
+    ),
+):
+    balanced_gov = BalancedGovernance(network)
+
+    transaction_result = balanced_gov.execute_vote(keystore, vote_index)
     print_tx_hash(transaction_result)
