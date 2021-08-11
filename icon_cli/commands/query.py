@@ -20,7 +20,8 @@ def debug():
 
 @app.command()
 def account(
-    address: str = typer.Argument(..., callback=Callbacks.validate_icx_address),
+    address: str = typer.Argument(...,
+                                  callback=Callbacks.validate_icx_address),
     network: IcxNetwork = typer.Option(
         Config.get_default_network(),
         "--network",
@@ -28,7 +29,8 @@ def account(
         callback=Callbacks.enforce_mainnet,
         case_sensitive=False,
     ),
-    format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
+    format: str = typer.Option(
+        None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
     icx = Icx(network)
     account_info = icx.query_address_info(address)
@@ -41,7 +43,8 @@ def account(
 
 @app.command()
 def balance(
-    address: str = typer.Argument(..., callback=Callbacks.validate_icx_address),
+    address: str = typer.Argument(...,
+                                  callback=Callbacks.validate_icx_address),
     network: IcxNetwork = typer.Option(
         Config.get_default_network(),
         "--network",
@@ -49,7 +52,8 @@ def balance(
         callback=Callbacks.enforce_mainnet,
         case_sensitive=False,
     ),
-    format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
+    format: str = typer.Option(
+        None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
     icx = Icx(network)
     balance = icx.query_icx_balance(address)
@@ -70,7 +74,8 @@ def block(
         callback=Callbacks.enforce_mainnet,
         case_sensitive=False,
     ),
-    format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
+    format: str = typer.Option(
+        None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
     """
     Returns block info for the specified block height.
@@ -93,7 +98,8 @@ def supply(
         callback=Callbacks.enforce_mainnet,
         case_sensitive=False,
     ),
-    format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
+    format: str = typer.Option(
+        None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
     icx = Icx(network)
     icx_supply = icx.query_icx_supply()
@@ -112,7 +118,8 @@ def transaction(
         callback=Callbacks.enforce_mainnet,
         case_sensitive=False,
     ),
-    format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
+    format: str = typer.Option(
+        None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
     icx = Icx(network)
     transaction_result = icx.query_transaction_result(transaction_hash)
