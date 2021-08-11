@@ -25,7 +25,8 @@ class BalancedLoans(Balanced):
         Returns:
             The ICX address of the queried position.
         """
-        result = self.call(self.BALANCED_LOANS_CONTRACT, "getPositionAddress", {"_index": index})
+        result = self.call(self.BALANCED_LOANS_CONTRACT,
+                           "getPositionAddress", {"_index": index})
         return result
 
     def query_position_count(self) -> int:
@@ -35,7 +36,8 @@ class BalancedLoans(Balanced):
 
     def query_position_from_address(self, address):
         params = {"_owner": address}
-        result = self.call(self.BALANCED_LOANS_CONTRACT, "getAccountPositions", params)
+        result = self.call(self.BALANCED_LOANS_CONTRACT,
+                           "getAccountPositions", params)
         if "pos_id" not in result:
             print(f"{address} does not have a position on Balanced")
             raise typer.Exit()
@@ -94,7 +96,8 @@ class BalancedLoans(Balanced):
             "_value": sicx_deposit_amount,
             "_data": "0x7b225f6173736574223a22222c225f616d6f756e74223a307d",
         }
-        transaction = self.build_call_transaction(wallet, self.SICX_CONTRACT, 0, "transfer", params)
+        transaction = self.build_call_transaction(
+            wallet, self.SICX_CONTRACT, 0, "transfer", params)
         transaction_result = self.send_transaction(wallet, transaction)
         return transaction_result
 
@@ -113,7 +116,8 @@ class BalancedLoans(Balanced):
 
         if position_ratio > 0 and position_ratio < self.LIQUIDATION_RATIO:
             transaction = self.build_call_transaction(
-                wallet, self.BALANCED_LOANS_CONTRACT, "liquidate", {"_owner": address}
+                wallet, self.BALANCED_LOANS_CONTRACT, "liquidate", {
+                    "_owner": address}
             )
             transaction_result = self.send_transaction(transaction)
             if len(transaction_result["eventLogs"]) > 0:
@@ -122,7 +126,8 @@ class BalancedLoans(Balanced):
                 print("Sorry, this position has already been liquidated.")
                 raise typer.Exit()
         else:
-            print(f"Sorry, {address} does not have a position that can be liquidated.")
+            print(
+                f"Sorry, {address} does not have a position that can be liquidated.")
             raise typer.Exit()
 
     def withdraw_collateral(self, wallet, amount: int):
@@ -139,7 +144,8 @@ class BalancedLoans(Balanced):
 
     def _query_positions(self, index_start: int, index_end: int):
         with ThreadPoolExecutor() as executor:
-            results = executor.map(self.query_position_from_index, range(index_start, index_end))
+            results = executor.map(
+                self.query_position_from_index, range(index_start, index_end))
         return results
 
     @staticmethod
