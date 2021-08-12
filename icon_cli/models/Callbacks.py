@@ -110,7 +110,8 @@ class Callbacks:
         if transaction_type in valid_transaction_types:
             return transaction_type
         else:
-            print(f"Sorry, {transaction_type} is not a valid transaction type.")
+            print(
+                f"Sorry, {transaction_type} is not a valid transaction type.")
             raise typer.Exit()
 
     @staticmethod
@@ -126,7 +127,8 @@ class Callbacks:
                 print(f"Sorry, {transaction_value} is not a number.")
                 raise typer.Exit()
         if transaction_value < 0:
-            print(f"Sorry, {transaction_value} is invalid. The minimum transaction value is 0.")
+            print(
+                f"Sorry, {transaction_value} is invalid. The minimum transaction value is 0.")
             raise typer.Exit()
         else:
             return to_loop(transaction_value)
@@ -144,7 +146,8 @@ class Callbacks:
                 print(f"Sorry, {transaction_value} is not a number.")
                 raise typer.Exit()
         if transaction_value <= 0:
-            print(f"Sorry, {transaction_value} is invalid. Please provide a value greater than 0.")
+            print(
+                f"Sorry, {transaction_value} is invalid. Please provide a value greater than 0.")
             raise typer.Exit()
         else:
             return to_loop(transaction_value)

@@ -26,7 +26,8 @@ def debug():
 
 @app.command()
 def borrow(
-    borrow_amount: float = typer.Argument(..., callback=Callbacks.validate_transaction_value),
+    borrow_amount: str = typer.Argument(
+        0, callback=Callbacks.validate_transaction_value),
     keystore: str = typer.Option(
         Config.get_default_keystore(),
         "--keystore",
@@ -42,70 +43,54 @@ def borrow(
     ),
     skip: bool = typer.Option(False, "--skip", "-s"),
     max: bool = typer.Option(False, "--max", "-max"),
-    threshold: bool = typer.Option(False, "--threshold", "-t"),
 ):
-    # Raise exception if both --max and --threshold are specified.
-    if max is True and threshold is True:
-        die("Sorry, you can't use --max and --threshold at the same time. Please choose one.")
 
-    # Raise exception if loan size is less than 10 bnUSD.
-    if borrow_amount < 10:
-        die("Sorry, the minimum loan size is 10 bnUSD.")
+    # Exit if borrow_amount is 0 and --max is False.
+    if borrow_amount == 0 and max is False:
+        die("Sorry, borrow amount must be greater than 0 bnUSD.")
 
     balanced_loans = BalancedLoans(network)
 
-    # Fetch ICX price and Balanced position details to calculate max loan size.
-    icx_price = balanced_loans.query_icx_usd_price()
-    balanced_position = balanced_loans.query_position_from_address(keystore.get_address())
+    LOCK_THRESHOLD = 0.34
+
+    balanced_position = balanced_loans.query_position_from_address(
+        keystore.get_address())
     collateral = balanced_position["assets"]["sICX"]
-    collateral_value = collateral * icx_price
-    max_borrow_amount = collateral_value * 0.25
-    threshold_borrow_amount = collateral_value * 0.2
+    collateral_value = collateral * balanced_loans.query_icx_usd_price() / 10 ** 18
+    max_borrow_amount = collateral_value * LOCK_THRESHOLD
 
-    log(
-        f"Collateral: {collateral}\n"
-        f"Collateral Value: {collateral_value}\n"
-        f"Max Borrow: {max_borrow_amount}\n"
-        f"Threshold Borrow: {threshold_borrow_amount}"
-    )
-
-    # Override borrow_amount if --max or --threshold is True.
     if max is True:
         borrow_amount = max_borrow_amount
-    if threshold is True:
-        borrow_amount = threshold_borrow_amount
+
+    log(f"Borrow Amount: {format_number_display(borrow_amount, 18, 18)} bnUSD")
+    log(f"Collateral: {format_number_display(collateral, 18, 18)} sICX")
+    log(f"Collateral Value: {format_number_display(collateral_value, 0, 18)} USD")
+    log(f"Max Borrow Amount: {format_number_display(max_borrow_amount, 18, 18)} bnUSD")
 
     # Raise exception if borrow_amount is greater than max_borrow_amount.
     if borrow_amount > max_borrow_amount:
         print(
             f"Sorry, you don't have enough collateral to borrow {format_number_display(borrow_amount, 18, 8)} bnUSD.\n"
-            f"Your maximum loan size is {format_number_display(max_borrow_amount, 18, 8)} bnUSD."
+            f"Your maximum loan size is {format_number_display(max_borrow_amount, 18, 2)} bnUSD."
         )
         die()
 
-    # Ask use to confirm borrow
-    if skip is False:
-        if borrow_amount >= threshold_borrow_amount and borrow_amount < max_borrow_amount:
-            borrow_confirmation = typer.confirm(
-                f"To earn BALN rewards, your loan size needs to be less than {format_number_display(threshold_borrow_amount, 0, 2)} bnUSD.\n"  # noqa 503
-                f"Would you like to proceed with borrowing {format_number_display(borrow_amount, 0, 2)} bnUSD?"
-            )
-        else:
-            borrow_confirmation = typer.confirm(
-                f"Please confirm you'd like to take a {format_number_display(borrow_amount, 0, 2)} bnUSD loan."
-            )
-        if not borrow_confirmation:
-            die()
-
-    transaction_result = balanced_loans.deposit_and_borrow(keystore, 0, to_loop(borrow_amount))
+    transaction_result = balanced_loans.borrow_bnusd(
+        keystore, to_loop(borrow_amount))
 
     print_tx_hash(transaction_result)
 
 
 @app.command()
+def repay():
+    pass
+
+
+@app.command()
 def deposit(
     asset: BalancedCollateralAsset = typer.Argument(..., case_sensitive=False),
-    amount: str = typer.Argument(0, callback=Callbacks.validate_transaction_value),
+    amount: str = typer.Argument(
+        0, callback=Callbacks.validate_transaction_value),
     keystore: str = typer.Option(
         Config.get_default_keystore(),
         "--keystore",
@@ -125,7 +110,7 @@ def deposit(
     balanced_loans = BalancedLoans(network)
 
     if amount <= 0:
-        die("Sorry, you need to deposit more than 0 ICX.") 
+        die("Sorry, you need to deposit more than 0 ICX.")
 
     if asset == "icx":
         icx_balance = balanced_loans.query_icx_balance(keystore.get_address())
@@ -167,7 +152,8 @@ def deposit(
         transaction_result = balanced_loans.deposit_icx(keystore, amount)
 
     if asset == "sicx":
-        sicx_balance = balanced_loans.query_token_balance(keystore.get_address(), "SICX")
+        sicx_balance = balanced_loans.query_token_balance(
+            keystore.get_address(), "SICX")
 
         if sicx_balance <= 0:
             die("Sorry, you don't have any sICX to deposit.")
@@ -225,7 +211,8 @@ def distribute(
 
 @app.command()
 def liquidate(
-    address: str = typer.Argument(..., callback=Callbacks.validate_icx_address),
+    address: str = typer.Argument(...,
+                                  callback=Callbacks.validate_icx_address),
     wallet: str = typer.Option(
         Config.get_default_keystore(),
         "--keystore",
@@ -306,7 +293,8 @@ def withdraw(
         "-k",
         callback=Callbacks.load_wallet_from_keystore,
     ),
-    amount: str = typer.Argument(0, callback=Callbacks.validate_nonzero_transaction_value),
+    amount: str = typer.Argument(
+        0, callback=Callbacks.validate_nonzero_transaction_value),
     network: IcxNetwork = typer.Option(
         Config.get_default_network(),
         "--network",
