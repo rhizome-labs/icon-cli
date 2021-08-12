@@ -253,7 +253,6 @@ class Icx:
             raise typer.Exit()
 
     def _make_tracker_request(self, url):
-        print(url)
         try:
             response = requests.get(f"{self.tracker_endpoint}{url}")
             response.raise_for_status()
