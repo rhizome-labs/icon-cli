@@ -228,6 +228,14 @@ class Icx:
             raise typer.Exit()
 
     ##############################
+    # EXTERNAL UTILITY FUNCTIONS #
+    ##############################
+
+    def get_event_logs(self, transaction_hash):
+        event_logs = self.icon_service.get_transaction_result(transaction_hash)
+        return event_logs
+
+    ##############################
     # INTERNAL UTILITY FUNCTIONS #
     ##############################
 

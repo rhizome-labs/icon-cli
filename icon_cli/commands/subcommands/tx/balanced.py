@@ -330,3 +330,25 @@ def execute_vote(
 
     transaction_result = balanced_gov.execute_vote(keystore, vote_index)
     print_tx_hash(transaction_result)
+
+
+@app.command()
+def rebalance(
+    keystore: str = typer.Option(
+        Config.get_default_keystore(),
+        "--keystore",
+        "-k",
+        callback=Callbacks.load_wallet_from_keystore,
+    ),
+    network: IcxNetwork = typer.Option(
+        Config.get_default_network(),
+        "--network",
+        "-n",
+        callback=Callbacks.enforce_mainnet,
+        case_sensitive=False,
+    ),
+):
+    balanced_loans = BalancedLoans(network)
+
+    transaction_result = balanced_loans.rebalance(keystore)
+    print_tx_hash(transaction_result)

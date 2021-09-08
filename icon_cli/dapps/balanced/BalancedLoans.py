@@ -130,6 +130,13 @@ class BalancedLoans(Balanced):
                 f"Sorry, {address} does not have a position that can be liquidated.")
             raise typer.Exit()
 
+    def rebalance(self, wallet):
+        transaction = self.build_call_transaction(
+            wallet, self.BALANCED_REBALANCE_CONTRACT, 0, "rebalance", {}
+        )
+        transaction_result = self.send_transaction(wallet, transaction)
+        return transaction_result
+
     def withdraw_collateral(self, wallet, amount: int):
         params = {"_value": amount}
         transaction = self.build_call_transaction(
