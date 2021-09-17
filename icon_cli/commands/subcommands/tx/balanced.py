@@ -257,20 +257,6 @@ def provide(
 
 
 @app.command()
-def retire_bnusd(
-    amount: int = typer.Argument(...),
-    network: IcxNetwork = typer.Option(
-        Config.get_default_network(),
-        "--network",
-        "-n",
-        callback=Callbacks.enforce_mainnet,
-        case_sensitive=False,
-    ),
-):
-    pass
-
-
-@app.command()
 def swap(
     source_asset: str = typer.Argument(...),
     destination_asset: str = typer.Argument(...),
@@ -347,8 +333,19 @@ def rebalance(
         callback=Callbacks.enforce_mainnet,
         case_sensitive=False,
     ),
+    loop: bool = typer.Option(False, "--loop", "-l")
 ):
     balanced_loans = BalancedLoans(network)
 
-    transaction_result = balanced_loans.rebalance(keystore)
-    print_tx_hash(transaction_result)
+    if loop is True:
+        while True:
+            transaction_result = balanced_loans.rebalance(keystore)
+            event_logs = transaction_result["eventLogs"]
+            if len(event_logs) > 1:
+                print_tx_hash(transaction_result)
+            else:
+                print("No more positions to rebalance. Exiting now...")
+                die()
+    else:
+        transaction_result = balanced_loans.rebalance(keystore)
+        print_tx_hash(transaction_result)
