@@ -5,8 +5,8 @@ from dotenv import load_dotenv
 from getpass import getpass
 from iconsdk.exception import KeyStoreException
 from iconsdk.wallet.wallet import KeyWallet
-from icon_cli.models.Config import Config
-from icon_cli.models.Icx import IcxNetwork
+from icon_cli.config import Config
+from icon_cli.icx import IcxNetwork
 from icon_cli.utils import to_loop
 from pathlib import PosixPath
 

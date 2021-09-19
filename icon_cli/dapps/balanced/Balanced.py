@@ -1,5 +1,5 @@
 from enum import Enum
-from icon_cli.models.Icx import Icx
+from icon_cli.icx import Icx
 
 
 class Balanced(Icx):

@@ -1,9 +1,9 @@
 import csv
 import typer
 from icon_cli.commands.subcommands.tx import balanced, gov
-from icon_cli.models.Callbacks import Callbacks
-from icon_cli.models.Config import Config
-from icon_cli.models.Icx import Icx, IcxNetwork
+from icon_cli.callbacks import Callbacks
+from icon_cli.config import Config
+from icon_cli.icx import Icx, IcxNetwork
 from icon_cli.utils import print_object
 from rich import print
 

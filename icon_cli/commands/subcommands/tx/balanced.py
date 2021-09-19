@@ -3,9 +3,9 @@ from icon_cli.dapps.balanced.Balanced import BalancedCollateralAsset
 from icon_cli.dapps.balanced.BalancedLoans import BalancedLoans
 from icon_cli.dapps.balanced.BalancedDividends import BalancedDividends
 from icon_cli.dapps.balanced.BalancedGovernance import BalancedGovernance
-from icon_cli.models.Icx import IcxNetwork
-from icon_cli.models.Callbacks import Callbacks
-from icon_cli.models.Config import Config
+from icon_cli.icx import IcxNetwork
+from icon_cli.callbacks import Callbacks
+from icon_cli.config import Config
 from icon_cli.utils import (
     die,
     format_number_display,

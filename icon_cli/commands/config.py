@@ -1,5 +1,5 @@
 import typer
-from icon_cli.models.Config import Config
+from icon_cli.config import Config
 from icon_cli.commands.subcommands.config import keystore
 from icon_cli.utils import die, print_json, print_object
 

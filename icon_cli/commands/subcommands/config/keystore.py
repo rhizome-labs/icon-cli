@@ -1,6 +1,6 @@
 import typer
-from icon_cli.models.Callbacks import Callbacks
-from icon_cli.models.Config import Config
+from icon_cli.callbacks import Callbacks
+from icon_cli.config import Config
 from icon_cli.utils import print_json, print_object
 from pathlib import Path
 
@@ -37,7 +37,8 @@ def inspect(
         Config.get_default_keystore(), callback=Callbacks.validate_keystore_name
     ),
     all: bool = typer.Option(False, "--all", "-a"),
-    format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
+    format: str = typer.Option(
+        None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
     """
     Returns information about imported keystores.

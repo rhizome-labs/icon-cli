@@ -15,7 +15,7 @@ from iconsdk.icon_service import IconService
 from iconsdk.wallet.wallet import KeyWallet
 from iconsdk.providers.http_provider import HTTPProvider
 from iconsdk.signed_transaction import SignedTransaction
-from icon_cli.models.Config import Config
+from icon_cli.config import Config
 from icon_cli.utils import hex_to_int, log
 from dotenv import load_dotenv
 from getpass import getpass
@@ -188,7 +188,7 @@ class Icx:
         self, wallet, transaction, broadcast_message: str = "Broadcasting transaction..."
     ):
         try:
-            step_limit = self.icon_service.estimate_step(transaction) + 1000
+            step_limit = self.icon_service.estimate_step(transaction) + 10000
             signed_transaction = SignedTransaction(
                 transaction, wallet, step_limit)
             transaction_hash = self.icon_service.send_transaction(
@@ -279,7 +279,7 @@ class Icx:
                     if transaction_result["status"] == 1:
                         break
                 except JSONRPCException:
-                    sleep(1)
+                    sleep(0.5)
                     continue
             return transaction_result
 

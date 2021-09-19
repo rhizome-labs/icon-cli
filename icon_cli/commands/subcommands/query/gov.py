@@ -1,8 +1,8 @@
 import typer
-from icon_cli.models.Callbacks import Callbacks
-from icon_cli.models.Config import Config
+from icon_cli.callbacks import Callbacks
+from icon_cli.config import Config
 from icon_cli.models.Gov import Gov
-from icon_cli.models.Icx import IcxNetwork
+from icon_cli.icx import IcxNetwork
 from icon_cli.models.Prep import Prep
 from icon_cli.utils import format_number_display, print_json, print_object, print_table
 from rich import box

@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from getpass import getpass
 from iconsdk.exception import KeyStoreException
 from iconsdk.wallet.wallet import KeyWallet
-from icon_cli.models.Config import Config
+from icon_cli.config import Config
 
 
 class Identity:

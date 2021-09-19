@@ -1,5 +1,5 @@
 from icon_cli.utils import hex_to_int
-from icon_cli.models.Icx import Icx
+from icon_cli.icx import Icx
 
 
 class Gov(Icx):
@@ -8,7 +8,8 @@ class Gov(Icx):
 
     def query_delegation(self, address):
         params = {"address": address}
-        result = self.call(self.ICX_GOVERNANCE_CONTRACT_0, "getDelegation", params)
+        result = self.call(self.ICX_GOVERNANCE_CONTRACT_0,
+                           "getDelegation", params)
 
         for k, v in result.items():
             if isinstance(v, str) and v[:2] == "0x":
