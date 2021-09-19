@@ -185,7 +185,11 @@ class Icx:
             raise typer.Exit()
 
     def send_transaction(
-        self, wallet, transaction, broadcast_message: str = "Broadcasting transaction..."
+        self,
+        wallet,
+        transaction,
+        broadcast_message: str = "Broadcasting transaction...",
+        verify_transaction: bool = True
     ):
         try:
             step_limit = self.icon_service.estimate_step(transaction) + 10000
@@ -193,9 +197,12 @@ class Icx:
                 transaction, wallet, step_limit)
             transaction_hash = self.icon_service.send_transaction(
                 signed_transaction)
-            transaction_result = self._get_transaction_result(
-                transaction_hash, broadcast_message)
-            return transaction_result
+            if verify_transaction is True:
+                transaction_result = self._get_transaction_result(
+                    transaction_hash, broadcast_message)
+                return transaction_result
+            else:
+                return transaction_hash
         except JSONRPCException as e:
             log(e)
             raise typer.Exit()

@@ -131,11 +131,17 @@ class BalancedLoans(Balanced):
             raise typer.Exit()
 
     def rebalance(self, wallet):
-        transaction = self.build_call_transaction(
-            wallet, self.BALANCED_REBALANCE_CONTRACT, 0, "rebalance", {}
-        )
-        transaction_result = self.send_transaction(wallet, transaction)
-        return transaction_result
+        rebalance_status = self.call(
+            self.BALANCED_REBALANCE_CONTRACT, "getRebalancingStatus", {})
+        if rebalance_status[0] != "0x0" or rebalance_status[2] != "0x0":
+            transaction = self.build_call_transaction(
+                wallet, self.BALANCED_REBALANCE_CONTRACT, 0, "rebalance", {}
+            )
+            transaction_result = self.send_transaction(wallet, transaction)
+            return transaction_result
+        else:
+            print("There are no positions to rebalance right now.")
+            raise typer.Exit()
 
     def withdraw_collateral(self, wallet, amount: int):
         params = {"_value": amount}

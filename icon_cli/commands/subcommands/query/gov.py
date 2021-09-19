@@ -1,9 +1,9 @@
 import typer
 from icon_cli.callbacks import Callbacks
 from icon_cli.config import Config
-from icon_cli.models.Gov import Gov
+from icon_cli.gov import Gov
 from icon_cli.icx import IcxNetwork
-from icon_cli.models.Prep import Prep
+from icon_cli.prep import Prep
 from icon_cli.utils import format_number_display, print_json, print_object, print_table
 from rich import box
 from rich import print
@@ -31,7 +31,8 @@ def preps(
     ),
     range_start: int = typer.Option(1, "--start", "-s"),
     range_end: int = typer.Option(500, "--end", "-e"),
-    format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
+    format: str = typer.Option(
+        None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
     if range_start < 1:
         print("Range start must be greater than 1.")
@@ -51,7 +52,8 @@ def preps(
 
 @app.command()
 def delegation(
-    address: str = typer.Option(None, "--address", "-a", callback=Callbacks.validate_icx_address),
+    address: str = typer.Option(
+        None, "--address", "-a", callback=Callbacks.validate_icx_address),
     keystore: str = typer.Option(
         Config.get_default_keystore(), "--keystore", "-k", callback=Callbacks.validate_keystore_name
     ),
@@ -62,7 +64,8 @@ def delegation(
         callback=Callbacks.enforce_mainnet,
         case_sensitive=False,
     ),
-    format: str = typer.Option(None, "--format", "-f", callback=Callbacks.validate_output_format),
+    format: str = typer.Option(
+        None, "--format", "-f", callback=Callbacks.validate_output_format),
 ):
     gov = Gov(network)
 
@@ -87,10 +90,12 @@ def delegation(
         table.add_column("Value", justify="left")
 
         table.add_row("ADDRESS", address)
-        table.add_row("TOTAL DELEGATION", f"{format_number_display(delegations['totalDelegated'])} ICX")
+        table.add_row("TOTAL DELEGATION",
+                      f"{format_number_display(delegations['totalDelegated'])} ICX")
         for delegation in delegations["delegations"]:
             table.add_row(
-                Prep.convert_address_to_name(delegation["address"]), f"{format_number_display(delegation['value'])} ICX"
+                Prep.convert_address_to_name(
+                    delegation["address"]), f"{format_number_display(delegation['value'])} ICX"
             )
 
         print_table(table)
