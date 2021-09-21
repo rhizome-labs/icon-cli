@@ -70,6 +70,11 @@ class BalancedLoans(Balanced):
 
         return sorted(filtered_positions, key=lambda i: i[sort_key], reverse=reverse)  # noqa 503
 
+    def query_rebalance_status(self):
+        rebalance_status = self.call(
+            self.BALANCED_REBALANCE_CONTRACT, "getRebalancingStatus", {})
+        return rebalance_status
+
     #########################
     # TRANSACTION FUNCTIONS #
     #########################
