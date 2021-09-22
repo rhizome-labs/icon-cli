@@ -15,6 +15,7 @@ from icon_cli.utils import (
     to_loop,
 )
 from rich import print
+from time import sleep
 
 app = typer.Typer()
 
@@ -339,13 +340,9 @@ def rebalance(
 
     if loop is True:
         while True:
-            transaction_result = balanced_loans.rebalance(keystore)
-            event_logs = transaction_result["eventLogs"]
-            if len(event_logs) > 1:
-                print_tx_hash(transaction_result)
-            else:
-                print("No more positions to rebalance. Exiting now...")
-                die()
+            transaction_result = balanced_loans.rebalance(
+                keystore, verify_transaction=False)
+            sleep(2)
     else:
         transaction_result = balanced_loans.rebalance(keystore)
         print_tx_hash(transaction_result)

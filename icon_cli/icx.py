@@ -198,11 +198,9 @@ class Icx:
             transaction_hash = self.icon_service.send_transaction(
                 signed_transaction)
             if verify_transaction is True:
-                transaction_result = self._get_transaction_result(
+                transaction_hash = self._verify_transaction_status(
                     transaction_hash, broadcast_message)
-                return transaction_result
-            else:
-                return transaction_hash
+            return transaction_hash
         except JSONRPCException as e:
             log(e)
             raise typer.Exit()
@@ -276,7 +274,7 @@ class Icx:
             log(e)
             raise typer.Exit()
 
-    def _get_transaction_result(self, transaction_hash, broadcast_message):
+    def _verify_transaction_status(self, transaction_hash, broadcast_message):
         console = Console()
         with console.status(f"[bold green]{broadcast_message}"):
             while True:
@@ -288,7 +286,7 @@ class Icx:
                 except JSONRPCException:
                     sleep(0.5)
                     continue
-            return transaction_result
+            return transaction_hash
 
 
 class IcxNetwork(str, Enum):
