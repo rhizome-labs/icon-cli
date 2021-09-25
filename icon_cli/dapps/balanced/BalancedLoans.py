@@ -135,14 +135,15 @@ class BalancedLoans(Balanced):
                 f"Sorry, {address} does not have a position that can be liquidated.")
             raise typer.Exit()
 
-    def rebalance(self, wallet):
+    def rebalance(self, wallet, verify_transaction=True):
         rebalance_status = self.call(
             self.BALANCED_REBALANCE_CONTRACT, "getRebalancingStatus", {})
-        if rebalance_status[0] != "0x0" or rebalance_status[2] != "0x0":
+        if rebalance_status[0] == "0x1" or rebalance_status[2] == "0x1":
             transaction = self.build_call_transaction(
                 wallet, self.BALANCED_REBALANCE_CONTRACT, 0, "rebalance", {}
             )
-            transaction_result = self.send_transaction(wallet, transaction)
+            transaction_result = self.send_transaction(
+                wallet, transaction, verify_transaction=verify_transaction)
             return transaction_result
         else:
             print("There are no positions to rebalance right now.")

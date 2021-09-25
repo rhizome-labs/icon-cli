@@ -192,7 +192,7 @@ class Icx:
         verify_transaction: bool = True
     ):
         try:
-            step_limit = self.icon_service.estimate_step(transaction) + 10000
+            step_limit = self.icon_service.estimate_step(transaction) + 100000
             signed_transaction = SignedTransaction(
                 transaction, wallet, step_limit)
             transaction_hash = self.icon_service.send_transaction(

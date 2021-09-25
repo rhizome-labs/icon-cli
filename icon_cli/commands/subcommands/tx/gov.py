@@ -1,6 +1,4 @@
 import typer
-from concurrent.futures import ThreadPoolExecutor
-from icon_cli.commands.subcommands.tx import balanced, gov
 from icon_cli.callbacks import Callbacks
 from icon_cli.config import Config
 from icon_cli.icx import Icx, IcxNetwork
