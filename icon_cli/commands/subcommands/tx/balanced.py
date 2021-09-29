@@ -341,13 +341,13 @@ def rebalance(
             transaction_result = balanced_loans.rebalance(
                 keystore, verify_transaction=False)
             print(transaction_result)
-            sleep(0.5)
+            sleep(1)
     else:
         transaction_result = balanced_loans.rebalance(keystore)
         print_tx_hash(transaction_result)
 
 
-@app.command()
+@ app.command()
 def withdraw(
     keystore: str = typer.Option(
         Config.get_default_keystore(),
