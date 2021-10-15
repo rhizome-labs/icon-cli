@@ -10,8 +10,14 @@ class BalancedDividends(Balanced):
     ##################
 
     def distribution_check(self):
-        result = self.call(self.BALANCED_DIVIDENDS_CONTRACT, "distribute", None)
+        result = self.call(self.BALANCED_DIVIDENDS_CONTRACT,
+                           "distribute", None)
         return int(result, 16)
+
+    def calculate_claim_in_usd(self, transaction_hash: str):
+        transaction_result = self.icon_service.get_transaction_result(
+            transaction_hash)
+        return transaction_result
 
     #########################
     # TRANSACTION FUNCTIONS #

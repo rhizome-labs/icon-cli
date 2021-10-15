@@ -1,5 +1,6 @@
 import typer
 from datetime import datetime
+from icon_cli.dapps.balanced.BalancedDividends import BalancedDividends
 from icon_cli.dapps.balanced.BalancedLoans import BalancedLoans
 from icon_cli.callbacks import Callbacks
 from icon_cli.config import Config
@@ -186,3 +187,21 @@ def rebalance(network: IcxNetwork = typer.Option(
         print(f"Reverse Rebalancing: Sell {hex_to_int(rebalance_status[1]) / 10 ** 18} tokens")  # noqa 503
     else:
         print("No rebalancing is necessary at this time.")
+
+
+@app.command()
+def claim(
+    transaction_hash: str = typer.Argument(...),
+    network: IcxNetwork = typer.Option(
+        Config.get_default_network(),
+        "--network",
+        "-n",
+        callback=Callbacks.enforce_mainnet,
+        case_sensitive=False,
+    ),
+    format: str = typer.Option(
+        None, "--format", "-f", callback=Callbacks.validate_output_format),
+):
+    balanced_dividends = BalancedDividends(network)
+    claim = balanced_dividends.calculate_claim_in_usd(transaction_hash)
+    print(claim)

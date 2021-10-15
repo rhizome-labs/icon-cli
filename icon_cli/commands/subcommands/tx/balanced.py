@@ -15,6 +15,7 @@ from icon_cli.utils import (
     to_loop,
 )
 from rich import print
+from threading import Thread
 from time import sleep
 
 app = typer.Typer()
@@ -332,19 +333,32 @@ def rebalance(
         callback=Callbacks.enforce_mainnet,
         case_sensitive=False,
     ),
-    loop: bool = typer.Option(False, "--loop", "-l")
+    loop: bool = typer.Option(False, "--loop", "-l"),
+    thread: int = typer.Option(2, "--threading", "-t")
 ):
     balanced_loans = BalancedLoans(network)
 
-    if loop is True:
+    def _rebalance():
         while True:
             transaction_result = balanced_loans.rebalance(
                 keystore, verify_transaction=False)
             print(transaction_result)
-            sleep(1)
+            sleep(0.1)
+
+    if loop is True:
+        for t in range(thread):
+            t = Thread(target=_rebalance)
+            t.start()
     else:
         transaction_result = balanced_loans.rebalance(keystore)
         print_tx_hash(transaction_result)
+
+#    if loop is True:
+#        while True:
+#            transaction_result = balanced_loans.rebalance(
+#                keystore, verify_transaction=False)
+#            print(transaction_result)
+#            sleep(0.1)
 
 
 @ app.command()
