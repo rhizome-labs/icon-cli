@@ -342,8 +342,12 @@ def rebalance(
         while True:
             transaction_result = balanced_loans.rebalance(
                 keystore, verify_transaction=False)
-            print(transaction_result)
-            sleep(0.5)
+            if transaction_result is not None:
+                print(transaction_result)
+                sleep(1)
+            else:
+                print("There are no positions to rebalance right now.")
+                break
 
     if loop is True:
         for t in range(thread):

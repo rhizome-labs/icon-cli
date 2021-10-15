@@ -146,8 +146,7 @@ class BalancedLoans(Balanced):
                 wallet, transaction, verify_transaction=verify_transaction)
             return transaction_result
         else:
-            print("There are no positions to rebalance right now.")
-            exit()
+            return None
 
     def withdraw_collateral(self, wallet, amount: int):
         params = {"_value": amount}
