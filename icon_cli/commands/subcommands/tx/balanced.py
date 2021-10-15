@@ -343,7 +343,7 @@ def rebalance(
             transaction_result = balanced_loans.rebalance(
                 keystore, verify_transaction=False)
             print(transaction_result)
-            sleep(0.1)
+            sleep(0.5)
 
     if loop is True:
         for t in range(thread):
