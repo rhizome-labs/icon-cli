@@ -357,13 +357,6 @@ def rebalance(
         transaction_result = balanced_loans.rebalance(keystore)
         print_tx_hash(transaction_result)
 
-#    if loop is True:
-#        while True:
-#            transaction_result = balanced_loans.rebalance(
-#                keystore, verify_transaction=False)
-#            print(transaction_result)
-#            sleep(0.1)
-
 
 @ app.command()
 def withdraw(
