@@ -344,7 +344,7 @@ def rebalance(
                 keystore, verify_transaction=False)
             if transaction_result is not None:
                 print(transaction_result)
-                sleep(1)
+                sleep(2)
             else:
                 print("There are no positions to rebalance right now.")
                 break
