@@ -85,7 +85,7 @@ def log(message):
 
 
 def print_json(input):
-    print(json.dumps(input, indent=4))
+    print(input)
 
 
 def print_object(object):

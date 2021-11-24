@@ -58,10 +58,7 @@ def balance(
     icx = Icx(network)
     balance = icx.query_icx_balance(address)
 
-    if format == "json":
-        print_json(balance)
-    else:
-        print(balance)
+    print_json(balance)
 
 
 @app.command()
@@ -83,11 +80,7 @@ def block(
     icx = Icx(network)
     block_data = icx.query_block(block)
 
-    if format == "json":
-        print_json(block_data)
-    else:
-        print("TBD")
-
+    print_json(block_data)
 
 @app.command()
 def supply(
@@ -104,8 +97,7 @@ def supply(
     icx = Icx(network)
     icx_supply = icx.query_icx_supply()
 
-    if format == "json":
-        print_json(icx_supply)
+    print_json(icx_supply)
 
 
 @app.command()
@@ -124,7 +116,4 @@ def transaction(
     icx = Icx(network)
     transaction_result = icx.query_transaction_result(transaction_hash)
 
-    if format == "json":
-        print_json(transaction_result)
-    else:
-        print("TBD")
+    print_json(transaction_result)
