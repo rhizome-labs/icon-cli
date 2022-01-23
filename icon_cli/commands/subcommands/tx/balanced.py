@@ -28,8 +28,7 @@ def debug():
 
 @app.command()
 def borrow(
-    borrow_amount: str = typer.Argument(
-        0, callback=Callbacks.validate_transaction_value),
+    borrow_amount: str = typer.Argument(0, callback=Callbacks.validate_transaction_value),
     keystore: str = typer.Option(
         Config.get_default_keystore(),
         "--keystore",
@@ -55,8 +54,7 @@ def borrow(
 
     LOCK_THRESHOLD = 0.34
 
-    balanced_position = balanced_loans.query_position_from_address(
-        keystore.get_address())
+    balanced_position = balanced_loans.query_position_from_address(keystore.get_address())
     collateral = balanced_position["assets"]["sICX"]
     collateral_value = collateral * balanced_loans.query_icx_usd_price() / 10 ** 18
     max_borrow_amount = collateral_value * LOCK_THRESHOLD
@@ -77,22 +75,15 @@ def borrow(
         )
         die()
 
-    transaction_result = balanced_loans.borrow_bnusd(
-        keystore, to_loop(borrow_amount))
+    transaction_result = balanced_loans.borrow_bnusd(keystore, to_loop(borrow_amount))
 
     print_tx_hash(transaction_result)
 
 
 @app.command()
-def repay():
-    pass
-
-
-@app.command()
 def deposit(
     asset: BalancedCollateralAsset = typer.Argument(..., case_sensitive=False),
-    amount: str = typer.Argument(
-        0, callback=Callbacks.validate_transaction_value),
+    amount: str = typer.Argument(0, callback=Callbacks.validate_transaction_value),
     keystore: str = typer.Option(
         Config.get_default_keystore(),
         "--keystore",
@@ -154,8 +145,7 @@ def deposit(
         transaction_result = balanced_loans.deposit_icx(keystore, amount)
 
     if asset == "sicx":
-        sicx_balance = balanced_loans.query_token_balance(
-            keystore.get_address(), "SICX")
+        sicx_balance = balanced_loans.query_token_balance(keystore.get_address(), "SICX")
 
         if sicx_balance <= 0:
             die("Sorry, you don't have any sICX to deposit.")
@@ -235,8 +225,7 @@ def evaluate_vote(
 
 @app.command()
 def liquidate(
-    address: str = typer.Argument(...,
-                                  callback=Callbacks.validate_icx_address),
+    address: str = typer.Argument(..., callback=Callbacks.validate_icx_address),
     wallet: str = typer.Option(
         Config.get_default_keystore(),
         "--keystore",
@@ -250,72 +239,12 @@ def liquidate(
         callback=Callbacks.enforce_mainnet,
         case_sensitive=False,
     ),
+    loop: bool = typer.Option(False, "--loop", "-l"),
 ):
     balanced_loans = BalancedLoans(network)
 
     transaction_result = balanced_loans.liquidate(wallet, address)
-
     print(f"{address} has been liquidated: {transaction_result['txHash']}")
-
-
-@app.command()
-def order(
-    pool: str = typer.Argument(...),
-):
-    pass
-
-
-@app.command()
-def provide(
-    pool: str = typer.Argument(...),
-    amount: int = typer.Argument(...),
-    network: IcxNetwork = typer.Option(
-        Config.get_default_network(),
-        "--network",
-        "-n",
-        callback=Callbacks.enforce_mainnet,
-        case_sensitive=False,
-    ),
-):
-    pass
-
-
-@app.command()
-def swap(
-    source_asset: str = typer.Argument(...),
-    destination_asset: str = typer.Argument(...),
-    network: IcxNetwork = typer.Option(
-        Config.get_default_network(),
-        "--network",
-        "-n",
-        callback=Callbacks.enforce_mainnet,
-        case_sensitive=False,
-    ),
-):
-    pass
-
-
-@app.command()
-def execute_vote(
-    vote_index: int = typer.Argument(...),
-    keystore: str = typer.Option(
-        Config.get_default_keystore(),
-        "--keystore",
-        "-k",
-        callback=Callbacks.load_wallet_from_keystore,
-    ),
-    network: IcxNetwork = typer.Option(
-        Config.get_default_network(),
-        "--network",
-        "-n",
-        callback=Callbacks.enforce_mainnet,
-        case_sensitive=False,
-    ),
-):
-    balanced_gov = BalancedGovernance(network)
-
-    transaction_result = balanced_gov.execute_vote(keystore, vote_index)
-    print_tx_hash(transaction_result)
 
 
 @app.command()
@@ -334,17 +263,17 @@ def rebalance(
         case_sensitive=False,
     ),
     loop: bool = typer.Option(False, "--loop", "-l"),
-    thread: int = typer.Option(2, "--threading", "-t")
+    thread: int = typer.Option(2, "--threading", "-t"),
+    delay: int = typer.Option(2, "--delay", "-d"),
 ):
     balanced_loans = BalancedLoans(network)
 
     def _rebalance():
         while True:
-            transaction_result = balanced_loans.rebalance(
-                keystore, verify_transaction=False)
+            transaction_result = balanced_loans.rebalance(keystore, verify_transaction=False)
             if transaction_result is not None:
                 print(transaction_result)
-                sleep(2)
+                sleep(delay)
             else:
                 print("There are no positions to rebalance right now.")
                 break
@@ -358,7 +287,51 @@ def rebalance(
         print_tx_hash(transaction_result)
 
 
-@ app.command()
+@app.command()
+def repay(
+    keystore: str = typer.Option(
+        Config.get_default_keystore(),
+        "--keystore",
+        "-k",
+        callback=Callbacks.load_wallet_from_keystore,
+    ),
+    amount: str = typer.Argument(0, callback=Callbacks.validate_nonzero_transaction_value),
+    network: IcxNetwork = typer.Option(
+        Config.get_default_network(),
+        "--network",
+        "-n",
+        callback=Callbacks.enforce_mainnet,
+        case_sensitive=False,
+    ),
+):
+    balanced_loans = BalancedLoans(network)
+    transaction_result = balanced_loans.repay(keystore, amount)
+    print_tx_hash(transaction_result)
+
+
+@app.command()
+def retire(
+    keystore: str = typer.Option(
+        Config.get_default_keystore(),
+        "--keystore",
+        "-k",
+        callback=Callbacks.load_wallet_from_keystore,
+    ),
+    amount: str = typer.Argument(0, callback=Callbacks.validate_nonzero_transaction_value),
+    network: IcxNetwork = typer.Option(
+        Config.get_default_network(),
+        "--network",
+        "-n",
+        callback=Callbacks.enforce_mainnet,
+        case_sensitive=False,
+    ),
+):
+    balanced_loans = BalancedLoans(network)
+    transaction_result = balanced_loans.retire(keystore, amount)
+    print_tx_hash(transaction_result)
+
+
+@app.command()
 def withdraw(
     keystore: str = typer.Option(
         Config.get_default_keystore(),
@@ -366,8 +339,7 @@ def withdraw(
         "-k",
         callback=Callbacks.load_wallet_from_keystore,
     ),
-    amount: str = typer.Argument(
-        0, callback=Callbacks.validate_nonzero_transaction_value),
+    amount: str = typer.Argument(0, callback=Callbacks.validate_nonzero_transaction_value),
     network: IcxNetwork = typer.Option(
         Config.get_default_network(),
         "--network",

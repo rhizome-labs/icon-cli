@@ -55,3 +55,7 @@ class Cps(Icx):
                 if v[:2] == "0x" and len(v) != 42:
                     proposal[k] = hex_to_int(v)
         return proposals
+
+    def query_project_amounts(self):
+        result = self.call(self.CPS_CONTRACT, "get_project_amounts", None)
+        print(result)

@@ -18,3 +18,7 @@ class Omm(Icx):
 
     def __init__(self, network) -> None:
         super().__init__(network)
+
+    def supply(self, wallet, token, amount):
+        transaction_result = self.build_call_transaction()
+        pass

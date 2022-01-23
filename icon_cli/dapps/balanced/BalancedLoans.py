@@ -25,8 +25,7 @@ class BalancedLoans(Balanced):
         Returns:
             The ICX address of the queried position.
         """
-        result = self.call(self.BALANCED_LOANS_CONTRACT,
-                           "getPositionAddress", {"_index": index})
+        result = self.call(self.BALANCED_LOANS_CONTRACT, "getPositionAddress", {"_index": index})
         return result
 
     def query_position_count(self) -> int:
@@ -36,8 +35,7 @@ class BalancedLoans(Balanced):
 
     def query_position_from_address(self, address):
         params = {"_owner": address}
-        result = self.call(self.BALANCED_LOANS_CONTRACT,
-                           "getAccountPositions", params)
+        result = self.call(self.BALANCED_LOANS_CONTRACT, "getAccountPositions", params)
         if "pos_id" not in result:
             print(f"{address} does not have a position on Balanced")
             raise typer.Exit()
@@ -71,8 +69,7 @@ class BalancedLoans(Balanced):
         return sorted(filtered_positions, key=lambda i: i[sort_key], reverse=reverse)  # noqa 503
 
     def query_rebalance_status(self):
-        rebalance_status = self.call(
-            self.BALANCED_REBALANCE_CONTRACT, "getRebalancingStatus", {})
+        rebalance_status = self.call(self.BALANCED_REBALANCE_CONTRACT, "getRebalancingStatus", {})
         return rebalance_status
 
     #########################
@@ -81,9 +78,7 @@ class BalancedLoans(Balanced):
 
     def borrow_bnusd(self, wallet, borrow_amount):
         params = {"_asset": "bnUSD", "_amount": borrow_amount}
-        transaction = self.build_call_transaction(
-            wallet, self.BALANCED_LOANS_CONTRACT, 0, "depositAndBorrow", params
-        )
+        transaction = self.build_call_transaction(wallet, self.BALANCED_LOANS_CONTRACT, 0, "depositAndBorrow", params)
         transaction_result = self.send_transaction(wallet, transaction)
         return transaction_result
 
@@ -101,8 +96,7 @@ class BalancedLoans(Balanced):
             "_value": sicx_deposit_amount,
             "_data": "0x7b225f6173736574223a22222c225f616d6f756e74223a307d",
         }
-        transaction = self.build_call_transaction(
-            wallet, self.SICX_CONTRACT, 0, "transfer", params)
+        transaction = self.build_call_transaction(wallet, self.SICX_CONTRACT, 0, "transfer", params)
         transaction_result = self.send_transaction(wallet, transaction)
         return transaction_result
 
@@ -121,8 +115,7 @@ class BalancedLoans(Balanced):
 
         if position_ratio > 0 and position_ratio < self.LIQUIDATION_RATIO:
             transaction = self.build_call_transaction(
-                wallet, self.BALANCED_LOANS_CONTRACT, "liquidate", {
-                    "_owner": address}
+                wallet, self.BALANCED_LOANS_CONTRACT, "liquidate", {"_owner": address}
             )
             transaction_result = self.send_transaction(transaction)
             if len(transaction_result["eventLogs"]) > 0:
@@ -131,28 +124,40 @@ class BalancedLoans(Balanced):
                 print("Sorry, this position has already been liquidated.")
                 raise typer.Exit()
         else:
-            print(
-                f"Sorry, {address} does not have a position that can be liquidated.")
+            print(f"Sorry, {address} does not have a position that can be liquidated ({position_ratio / 10 ** 18}).")
             raise typer.Exit()
 
     def rebalance(self, wallet, verify_transaction=True):
-        rebalance_status = self.call(
-            self.BALANCED_REBALANCE_CONTRACT, "getRebalancingStatus", {})
+        rebalance_status = self.call(self.BALANCED_REBALANCE_CONTRACT, "getRebalancingStatus", {})
         if rebalance_status[0] == "0x1" or rebalance_status[2] == "0x1":
-            transaction = self.build_call_transaction(
-                wallet, self.BALANCED_REBALANCE_CONTRACT, 0, "rebalance", {}
-            )
-            transaction_result = self.send_transaction(
-                wallet, transaction, verify_transaction=verify_transaction)
+            transaction = self.build_call_transaction(wallet, self.BALANCED_REBALANCE_CONTRACT, 0, "rebalance", {})
+            transaction_result = self.send_transaction(wallet, transaction, verify_transaction=verify_transaction)
             return transaction_result
         else:
             return None
 
+    def repay(self, wallet, amount):
+        params = {
+            "_symbol": "bnUSD",
+            "_value": int(amount),
+            "_repay": False,
+        }
+        transaction = self.build_call_transaction(wallet, self.BALANCED_LOANS_CONTRACT, 0, "returnAsset", params)
+        transaction_result = self.send_transaction(wallet, transaction)
+        return transaction_result
+
+    def retire(self, wallet, amount):
+        params = {
+            "_symbol": "bnUSD",
+            "_value": int(amount),
+        }
+        transaction = self.build_call_transaction(wallet, self.BALANCED_LOANS_CONTRACT, 0, "retireBadDebt", params)
+        transaction_result = self.send_transaction(wallet, transaction)
+        return transaction_result
+
     def withdraw_collateral(self, wallet, amount: int):
         params = {"_value": amount}
-        transaction = self.build_call_transaction(
-            wallet, self.BALANCED_LOANS_CONTRACT, 0, "withdrawCollateral", params
-        )
+        transaction = self.build_call_transaction(wallet, self.BALANCED_LOANS_CONTRACT, 0, "withdrawCollateral", params)
         transaction_result = self.send_transaction(wallet, transaction)
         return transaction_result
 
@@ -162,8 +167,7 @@ class BalancedLoans(Balanced):
 
     def _query_positions(self, index_start: int, index_end: int):
         with ThreadPoolExecutor() as executor:
-            results = executor.map(
-                self.query_position_from_index, range(index_start, index_end))
+            results = executor.map(self.query_position_from_index, range(index_start, index_end))
         return results
 
     @staticmethod

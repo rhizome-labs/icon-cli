@@ -20,6 +20,7 @@ from icon_cli.utils import hex_to_int, log
 from dotenv import load_dotenv
 from getpass import getpass
 from random import randint
+from rich import print
 from rich.console import Console
 from time import sleep
 
@@ -39,6 +40,9 @@ class Icx:
     }
 
     def __init__(self, network) -> None:
+
+        if network is None:
+            network = "mainnet"
 
         self.network = network
         self.api_version = 3
@@ -68,8 +72,7 @@ class Icx:
 
     def query_claimable_iscore(self, address: str):
         params = {"address": address}
-        result = self.call(self.ICX_GOVERNANCE_CONTRACT_0,
-                           "queryIScore", params)
+        result = self.call(self.ICX_GOVERNANCE_CONTRACT_0, "queryIScore", params)
         for k, v in result.items():
             result[k] = hex_to_int(v)
         return result
@@ -91,8 +94,7 @@ class Icx:
     def query_token_balance(self, address, ticker: str):
         tickers = self.IRC2_TOKEN_CONTRACTS
         contract_address = tickers[ticker.upper()]
-        token_balance = self.call(
-            contract_address, "balanceOf", {"_owner": address})
+        token_balance = self.call(contract_address, "balanceOf", {"_owner": address})
         return int(token_balance, 16)
 
     def query_transaction_result(self, transaction_hash: str):
@@ -189,17 +191,17 @@ class Icx:
         wallet,
         transaction,
         broadcast_message: str = "Broadcasting transaction...",
-        verify_transaction: bool = True
+        verify_transaction: bool = True,
     ):
         try:
             step_limit = self.icon_service.estimate_step(transaction) + 100000
-            signed_transaction = SignedTransaction(
-                transaction, wallet, step_limit)
-            transaction_hash = self.icon_service.send_transaction(
-                signed_transaction)
+            print(step_limit)
+            signed_transaction = SignedTransaction(transaction, wallet, int(step_limit))
+            print(signed_transaction)
+            transaction_hash = self.icon_service.send_transaction(signed_transaction)
+            print(transaction_hash)
             if verify_transaction is True:
-                transaction_result = self._get_transaction_result(
-                    transaction_hash, broadcast_message)
+                transaction_result = self._get_transaction_result(transaction_hash, broadcast_message)
                 return transaction_result
             else:
                 return transaction_hash
@@ -224,8 +226,7 @@ class Icx:
                 wallet_password = os.getenv(keystore_name.upper())
             else:
                 wallet_password = getpass("Keystore Password: ")
-            wallet = KeyWallet.load(
-                f"{Config.keystore_dir}/{keystore_filename}", wallet_password)
+            wallet = KeyWallet.load(f"{Config.keystore_dir}/{keystore_filename}", wallet_password)
             return wallet
         except KeyStoreException:
             print("Sorry, the password you supplied is incorrect.")
@@ -281,8 +282,7 @@ class Icx:
         with console.status(f"[bold green]{broadcast_message}"):
             while True:
                 try:
-                    transaction_result = self.icon_service.get_transaction_result(
-                        transaction_hash)
+                    transaction_result = self.icon_service.get_transaction_result(transaction_hash)
                     if transaction_result["status"] == 1:
                         break
                 except JSONRPCException:
