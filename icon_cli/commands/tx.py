@@ -1,7 +1,8 @@
 import csv
+
 import typer
-from icon_cli.commands.subcommands.tx import balanced, gov
 from icon_cli.callbacks import Callbacks
+from icon_cli.commands.subcommands.tx import balanced, gov, omm
 from icon_cli.config import Config
 from icon_cli.icx import Icx, IcxNetwork
 from icon_cli.utils import print_object
@@ -11,6 +12,7 @@ app = typer.Typer()
 
 app.add_typer(balanced.app, name="balanced")
 app.add_typer(gov.app, name="gov")
+app.add_typer(omm.app, name="omm")
 
 
 @app.command()
@@ -37,7 +39,7 @@ def send(
     ),
     simulation: bool = typer.Option(False, "--simulate", "-s"),
     confirmation: bool = typer.Option(True, "--confirm", "-c"),
-    file: str = typer.Option(None, "--file", "-f")
+    file: str = typer.Option(None, "--file", "-f"),
 ):
     icx = Icx(network)
 
@@ -72,7 +74,7 @@ def send_batch(
         case_sensitive=False,
     ),
     simulation: bool = typer.Option(False, "--simulate", "-s"),
-    confirmation: bool = typer.Option(True, "--confirm", "-c")
+    confirmation: bool = typer.Option(True, "--confirm", "-c"),
 ):
     icx = Icx(network)
 
@@ -81,7 +83,9 @@ def send_batch(
     if file is not None:
 
         with open(file) as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter=',')
+            csv_reader = csv.reader(csv_file, delimiter=",")
             next(csv_reader, None)  # Skip headers.
-            transactions = [icx.build_transaction(keystore, row[0], row[1]) for row in csv_reader]
+            transactions = [
+                icx.build_transaction(keystore, row[0], row[1]) for row in csv_reader
+            ]
             print(transactions)

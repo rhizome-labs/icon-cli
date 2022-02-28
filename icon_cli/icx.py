@@ -1,8 +1,13 @@
 import os
-import requests
-import typer
 from enum import Enum
 from functools import lru_cache
+from getpass import getpass
+from random import randint
+from time import sleep
+
+import requests
+import typer
+from dotenv import load_dotenv
 from iconsdk.builder.call_builder import CallBuilder
 from iconsdk.builder.transaction_builder import (
     CallTransactionBuilder,
@@ -12,22 +17,19 @@ from iconsdk.builder.transaction_builder import (
 )
 from iconsdk.exception import JSONRPCException, KeyStoreException
 from iconsdk.icon_service import IconService
-from iconsdk.wallet.wallet import KeyWallet
 from iconsdk.providers.http_provider import HTTPProvider
 from iconsdk.signed_transaction import SignedTransaction
-from icon_cli.config import Config
-from icon_cli.utils import hex_to_int, log
-from dotenv import load_dotenv
-from getpass import getpass
-from random import randint
+from iconsdk.wallet.wallet import KeyWallet
 from rich import print
 from rich.console import Console
-from time import sleep
+
+from icon_cli.config import Config
+from icon_cli.utils import hex_to_int, log
 
 
 class Icx:
 
-    EXA = 10 ** 18
+    EXA = 10**18
 
     BAND_ORACLE_CONTRACT = "cx087b4164a87fdfb7b714f3bafe9dfb050fd6b132"
     ICX_GOVERNANCE_CONTRACT_0 = "cx0000000000000000000000000000000000000000"
@@ -98,7 +100,9 @@ class Icx:
         return int(token_balance, 16)
 
     def query_transaction_result(self, transaction_hash: str):
-        transaction_result = self.icon_service.get_transaction_result(transaction_hash)  # noqa 503
+        transaction_result = self.icon_service.get_transaction_result(
+            transaction_hash
+        )  # noqa 503
         transaction_result.pop("logsBloom")
         return transaction_result
 
@@ -107,7 +111,9 @@ class Icx:
     #####################
 
     def query_address_info(self, address: str) -> dict:
-        response = self._make_tracker_request(f"/address/info?address={address}")  # noqa 503
+        response = self._make_tracker_request(
+            f"/address/info?address={address}"
+        )  # noqa 503
         return response
 
     def query_icx_supply(self) -> dict:
@@ -134,7 +140,9 @@ class Icx:
             log(e)
             raise typer.Exit()
 
-    def build_call_transaction(self, wallet, to, value: int = 0, method: str = None, params: dict = {}):
+    def build_call_transaction(
+        self, wallet, to, value: int = 0, method: str = None, params: dict = {}
+    ):
         try:
             transaction = (
                 CallTransactionBuilder()
@@ -201,7 +209,9 @@ class Icx:
             transaction_hash = self.icon_service.send_transaction(signed_transaction)
             print(transaction_hash)
             if verify_transaction is True:
-                transaction_result = self._get_transaction_result(transaction_hash, broadcast_message)
+                transaction_result = self._get_transaction_result(
+                    transaction_hash, broadcast_message
+                )
                 return transaction_result
             else:
                 return transaction_hash
@@ -226,7 +236,9 @@ class Icx:
                 wallet_password = os.getenv(keystore_name.upper())
             else:
                 wallet_password = getpass("Keystore Password: ")
-            wallet = KeyWallet.load(f"{Config.keystore_dir}/{keystore_filename}", wallet_password)
+            wallet = KeyWallet.load(
+                f"{Config.keystore_dir}/{keystore_filename}", wallet_password
+            )
             return wallet
         except KeyStoreException:
             print("Sorry, the password you supplied is incorrect.")
@@ -282,7 +294,9 @@ class Icx:
         with console.status(f"[bold green]{broadcast_message}"):
             while True:
                 try:
-                    transaction_result = self.icon_service.get_transaction_result(transaction_hash)
+                    transaction_result = self.icon_service.get_transaction_result(
+                        transaction_hash
+                    )
                     if transaction_result["status"] == 1:
                         break
                 except JSONRPCException:

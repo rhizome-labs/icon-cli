@@ -1,6 +1,6 @@
 import typer
-from icon_cli.commands.subcommands.query import balanced, cps, gov
 from icon_cli.callbacks import Callbacks
+from icon_cli.commands.subcommands.query import balanced, cps, gov, omm
 from icon_cli.config import Config
 from icon_cli.icx import Icx, IcxNetwork
 from icon_cli.utils import print_json, print_object
@@ -11,6 +11,7 @@ app = typer.Typer()
 app.add_typer(balanced.app, name="balanced")
 app.add_typer(cps.app, name="cps")
 app.add_typer(gov.app, name="gov")
+app.add_typer(omm.app, name="omm")
 
 
 @app.command()
@@ -20,8 +21,7 @@ def debug():
 
 @app.command()
 def account(
-    address: str = typer.Argument(...,
-                                  callback=Callbacks.validate_icx_address),
+    address: str = typer.Argument(..., callback=Callbacks.validate_icx_address),
     network: IcxNetwork = typer.Option(
         Config.get_default_network(),
         "--network",
@@ -30,7 +30,8 @@ def account(
         case_sensitive=False,
     ),
     format: str = typer.Option(
-        None, "--format", "-f", callback=Callbacks.validate_output_format),
+        None, "--format", "-f", callback=Callbacks.validate_output_format
+    ),
 ):
     icx = Icx(network)
     account_info = icx.query_address_info(address)
@@ -43,8 +44,7 @@ def account(
 
 @app.command()
 def balance(
-    address: str = typer.Argument(...,
-                                  callback=Callbacks.validate_icx_address),
+    address: str = typer.Argument(..., callback=Callbacks.validate_icx_address),
     network: IcxNetwork = typer.Option(
         Config.get_default_network(),
         "--network",
@@ -53,7 +53,8 @@ def balance(
         case_sensitive=False,
     ),
     format: str = typer.Option(
-        None, "--format", "-f", callback=Callbacks.validate_output_format),
+        None, "--format", "-f", callback=Callbacks.validate_output_format
+    ),
 ):
     icx = Icx(network)
     balance = icx.query_icx_balance(address)
@@ -72,7 +73,8 @@ def block(
         case_sensitive=False,
     ),
     format: str = typer.Option(
-        None, "--format", "-f", callback=Callbacks.validate_output_format),
+        None, "--format", "-f", callback=Callbacks.validate_output_format
+    ),
 ):
     """
     Returns block info for the specified block height.
@@ -81,6 +83,7 @@ def block(
     block_data = icx.query_block(block)
 
     print_json(block_data)
+
 
 @app.command()
 def supply(
@@ -92,7 +95,8 @@ def supply(
         case_sensitive=False,
     ),
     format: str = typer.Option(
-        None, "--format", "-f", callback=Callbacks.validate_output_format),
+        None, "--format", "-f", callback=Callbacks.validate_output_format
+    ),
 ):
     icx = Icx(network)
     icx_supply = icx.query_icx_supply()
@@ -111,7 +115,8 @@ def transaction(
         case_sensitive=False,
     ),
     format: str = typer.Option(
-        None, "--format", "-f", callback=Callbacks.validate_output_format),
+        None, "--format", "-f", callback=Callbacks.validate_output_format
+    ),
 ):
     icx = Icx(network)
     transaction_result = icx.query_transaction_result(transaction_hash)
