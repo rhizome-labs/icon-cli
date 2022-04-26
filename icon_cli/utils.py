@@ -20,3 +20,7 @@ def format(value: int, exa: int, round: int = 0):
         return f"{value / 10**exa}"
     else:
         return f"{round(value / 10**exa, round)}"
+
+
+def hex_to_int(input: str):
+    return int(input, 16)

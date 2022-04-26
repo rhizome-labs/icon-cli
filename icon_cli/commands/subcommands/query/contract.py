@@ -2,7 +2,7 @@ import typer
 from icon_cli.config import Config
 from icon_cli.icx import Icx
 from icon_cli.validators import Validators
-from rich import print
+
 
 app = typer.Typer()
 

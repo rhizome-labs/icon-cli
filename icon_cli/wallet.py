@@ -1,9 +1,10 @@
-from pathlib import PosixPath
+from getpass import getpass
 
-from dotenv import load_dotenv
+from iconsdk.exception import KeyStoreException
 from iconsdk.wallet.wallet import KeyWallet
 
 from icon_cli.config import Config
+from icon_cli.utils import die
 
 
 class Wallet(Config):
@@ -11,9 +12,19 @@ class Wallet(Config):
         super().__init__()
 
     @classmethod
-    def load_wallet(cls, wallet_path: PosixPath, password: str):
-        wallet = KeyWallet.load(wallet_path, password)
-        return wallet
+    def load_wallet(cls, keystore: str):
+        try:
+            keystore_metadata = Config.get_keystore_metadata(keystore)
+            keystore_filename = keystore_metadata["keystore_filename"]
+            wallet_password = getpass("Keystore Password: ")
+            wallet = KeyWallet.load(
+                f"{Config.keystore_dir}/{keystore_filename}", wallet_password
+            )
+            return wallet
+        except KeyStoreException:
+            die("The password you supplied is incorrect.", "error")
+        except Exception as e:
+            die(e, "error")
 
     @classmethod
     def create_wallet(cls, password: str):

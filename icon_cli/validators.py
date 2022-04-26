@@ -1,5 +1,4 @@
-import typer
-from rich import inspect
+from pathlib import PosixPath
 
 from icon_cli.config import Config
 from icon_cli.tokens import Tokens
@@ -31,6 +30,13 @@ class Validators(Config):
         elif contract[:2] != "cx" or len(contract) != 42:
             die(f"{contract} is not a valid ICX contract address.", "error")
         return contract
+
+    @staticmethod
+    def validate_keystore(keystore_path: PosixPath):
+        valid_keystore_sizes = (509, 512)
+        if keystore_path.stat().st_size not in valid_keystore_sizes:
+            die(f"This keystore file is not valid.", "error")
+        return keystore_path
 
     @classmethod
     def validate_lowercase_only(cls, input: str):

@@ -19,6 +19,6 @@ class Contracts:
         pass
 
     @classmethod
-    def get_contract_from_name(cls, name: str) -> str:
-        contract = cls.CONTRACTS[name]
+    def get_contract_from_name(cls, name: str, network: str) -> str:
+        contract = cls.CONTRACTS[name][network]
         return contract
