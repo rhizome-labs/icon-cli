@@ -3,6 +3,9 @@ import shutil
 from pathlib import Path, PosixPath
 
 import yaml
+from rich import print
+
+from icon_cli.utils import die
 
 
 class Config:
@@ -19,7 +22,7 @@ class Config:
         "default_network": "mainnet",
         "keystores": [],
         "query_only": False,
-        "saved_addresses": [],
+        "saved_addresses": {},
     }
 
     default_networks = {
@@ -68,6 +71,10 @@ class Config:
             with open(cls.config_file, "w+", encoding="utf-8") as config_file:
                 yaml.dump(cls.default_config, config_file, sort_keys=True)
 
+    @classmethod
+    def inspect_config(cls) -> dict:
+        return cls._read_config()
+
     ######################
     # NETWORK FUNCTIONS #
     ######################
@@ -82,19 +89,31 @@ class Config:
     def get_default_networks(cls) -> dict:
         return cls.default_networks
 
-    ##############################
-    # EXTERNAL UTILITY FUNCTIONS #
-    ##############################
+    ##########################
+    # ADDRESS BOOK FUNCTIONS #
+    ##########################
 
     @classmethod
-    def inspect_config(cls) -> dict:
-        return cls._read_config()
-
-    @classmethod
-    def _read_config(cls) -> dict:
-        with open(cls.config_file, "r") as config_file:
+    def add_address_to_address_book(cls, address: str, name: str):
+        with open(cls.config_file, "r+", encoding="utf-8") as config_file:
             config = yaml.safe_load(config_file)
-        return config
+            config["saved_addresses"][name] = address
+            config_file.seek(0)
+            yaml.dump(config, config_file, sort_keys=True)
+            config_file.truncate()
+
+    @classmethod
+    def delete_address_from_address_book(cls, name: str):
+        with open(cls.config_file, "r+", encoding="utf-8") as config_file:
+            config = yaml.safe_load(config_file)
+            config["saved_addresses"].pop(name)
+            config_file.seek(0)
+            yaml.dump(config, config_file, sort_keys=True)
+            config_file.truncate()
+
+    ##############################
+    # INTERNAL UTILITY FUNCTIONS #
+    ##############################
 
     @staticmethod
     def _copy_file(source, destination) -> None:
@@ -107,3 +126,30 @@ class Config:
     @staticmethod
     def _delete_file(path: PosixPath) -> None:
         os.remove(path)
+
+    @classmethod
+    def _list_config_keys(cls) -> str:
+        keys = list(cls.default_config.keys())
+        return ", and ".join([", ".join(keys[:-1]), keys[-1]])
+
+    @classmethod
+    def _read_config(cls) -> dict:
+        with open(cls.config_file, "r") as config_file:
+            config = yaml.full_load(config_file)
+        return config
+
+    @classmethod
+    def _write_config(cls, key: str, value: str):
+        if not isinstance(value, str):
+            die("Only string values are supported.", "error")
+        if key in cls._list_config_keys():
+            with open(
+                cls.config_file, "r+", encoding="utf-8"
+            ) as config_file:  # noqa 503
+                config = yaml.safe_load(config_file)
+                config[key] = value
+                config_file.seek(0)
+                yaml.dump(config, config_file, sort_keys=True)
+                config_file.truncate()
+        else:
+            die(f"{key} is not a valid configuration key.", "error")

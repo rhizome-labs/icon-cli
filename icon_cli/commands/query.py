@@ -1,4 +1,5 @@
 import typer
+from icon_cli.commands.subcommands.query import contract
 from icon_cli.config import Config
 from icon_cli.icx import Icx
 from icon_cli.tokens import Tokens
@@ -7,6 +8,8 @@ from icon_cli.validators import Validators
 from rich import inspect, print
 
 app = typer.Typer()
+
+app.add_typer(contract.app, name="contract")
 
 
 @app.command()

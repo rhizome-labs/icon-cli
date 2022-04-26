@@ -1,3 +1,4 @@
+import requests
 import typer
 from dotenv import load_dotenv
 from iconsdk.builder.call_builder import CallBuilder
@@ -25,33 +26,32 @@ class Icx(Config):
     def __init__(self, network) -> None:
         super().__init__()
 
-        self.icon_service, self.nid = self._get_icon_service(network)
+        self.network = network
+        self.icon_service, self.nid = self._get_icon_service()
 
     def call(self, to, method, params=None):
-        try:
-            call = CallBuilder().to(to).method(method).params(params).build()
-            result = self.icon_service.call(call)
-            return result
-        except JSONRPCException:
-            raise typer.Exit()
+        call = CallBuilder().to(to).method(method).params(params).build()
+        result = self.icon_service.call(call)
+        return result
 
     def get_balance(self, address: str):
-        try:
-            result = self.icon_service.get_balance(address)
-            return result
-        except JSONRPCException:
-            raise typer.Exit()
+        result = self.icon_service.get_balance(address)
+        return result
+
+    def get_contract_abi(self, contract: str):
+        url = f"{self._get_tracker_endpoint()}/api/v1/contracts/{contract}"
+        r = requests.get(url)
+        data = r.json()
+        abi = data["abi"]
+        return abi
 
     def get_token_balance(self, address: str, contract: str):
-        try:
-            result = self.call(contract, "balanceOf", {"_owner": address})
-            return int(result, 16)
-        except JSONRPCException:
-            raise typer.Exit()
+        result = self.call(contract, "balanceOf", {"_owner": address})
+        return int(result, 16)
 
-    def _get_icon_service(self, network: str = None):
+    def _get_icon_service(self):
         try:
-            network = self.default_networks[network]
+            network = self.default_networks[self.network]
             api_endpoint = network["api_endpoint"]
             nid = network["nid"]
             return (
@@ -61,3 +61,8 @@ class Icx(Config):
         except KeyError:
             print(f"ERROR: {network} is not a supported network.")
             raise typer.Exit()
+
+    def _get_tracker_endpoint(self):
+        network = self.default_networks[self.network]
+        tracker_endpoint = network["tracker_endpoint"]
+        return tracker_endpoint

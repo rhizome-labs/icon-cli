@@ -11,16 +11,18 @@ class Validators(Config):
         super().__init__()
 
     @classmethod
-    def validate_network(cls, network):
-        if network not in cls.default_networks.keys():
-            die(f"{network} is not a valid network.", "error")
-        return network
-
-    @classmethod
     def validate_address(cls, address):
         if address[:2] != "hx" or len(address) != 42:
             die(f"{address} is not a valid ICX address.", "error")
         return address
+
+    @classmethod
+    def validate_address_book_address_name(cls, name: str):
+        config = Config.inspect_config()
+        saved_addresses = config["saved_addresses"]
+        if name not in saved_addresses:
+            die(f"{name} does not exist in the address book.", "error")
+        return name
 
     @classmethod
     def validate_contract(cls, contract):
@@ -29,6 +31,20 @@ class Validators(Config):
         elif contract[:2] != "cx" or len(contract) != 42:
             die(f"{contract} is not a valid ICX contract address.", "error")
         return contract
+
+    @classmethod
+    def validate_lowercase_only(cls, input: str):
+        return input.lower()
+
+    @classmethod
+    def validate_network(cls, network):
+        if network not in cls.default_networks.keys():
+            die(f"{network} is not a valid network.", "error")
+        return network
+
+    @classmethod
+    def validate_uppercase_only(cls, input: str):
+        return input.upper()
 
     @staticmethod
     def validate_token_ticker(ticker):
