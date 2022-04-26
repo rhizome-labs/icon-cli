@@ -1,5 +1,5 @@
-from icon_cli.utils import hex_to_int
 from icon_cli.icx import Icx
+from icon_cli.utils import hex_to_int
 
 
 class Gov(Icx):
@@ -8,8 +8,7 @@ class Gov(Icx):
 
     def query_delegation(self, address):
         params = {"address": address}
-        result = self.call(self.ICX_GOVERNANCE_CONTRACT_0,
-                           "getDelegation", params)
+        result = self.call(self.GOVERNANCE_CONTRACT, "getDelegation", params)
 
         for k, v in result.items():
             if isinstance(v, str) and v[:2] == "0x":
@@ -21,3 +20,11 @@ class Gov(Icx):
                 delegation["value"] = hex_to_int(delegation["value"], 18)
 
         return result
+
+    def set_bonder_list(self, bonder_list, wallet):
+        params = {"bonderList": bonder_list}
+        tx = self.build_call_transaction(
+            wallet, self.CHAIN_CONTRACT, 0, "setBonderList", params
+        )
+        tx_hash = self.send_transaction(wallet, tx)
+        return tx_hash

@@ -34,7 +34,21 @@ def bond(
 
 
 @app.command()
-def set_bond_addresses():
+def set_bonder_list(
+    keystore: str = typer.Option(
+        Config.get_default_keystore(),
+        "--keystore",
+        "-k",
+        callback=Callbacks.load_wallet_from_keystore,
+    ),
+    network: IcxNetwork = typer.Option(
+        Config.get_default_network(),
+        "--network",
+        "-n",
+        callback=Callbacks.enforce_mainnet,
+        case_sensitive=False,
+    ),
+):
     pass
 
 
@@ -61,6 +75,9 @@ def claim(
     if claimable_iscore["iscore"] < 1000:
         die("Sorry, minimum claim amount is 1,000 I-Score (1 ICX).")
     else:
-        transaction = icx.build_call_transaction(keystore, icx.ICX_GOVERNANCE_CONTRACT_0, 0, "claimIScore")
+        transaction = icx.build_call_transaction(
+            keystore, icx.GOVERNANCE_CONTRACT, 0, "claimIScore"
+        )
         transaction_result = icx.send_transaction(keystore, transaction)
         print(transaction_result)
+

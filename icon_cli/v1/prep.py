@@ -1,12 +1,11 @@
 import requests
 import typer
-from icon_cli.icx import Icx
 from rich import print
+
+from icon_cli.icx import Icx
 
 
 class Prep(Icx):
-
-    GOVERNANCE_CONTRACT = "cx0000000000000000000000000000000000000000"
 
     PREP_ADDRESSES_TO_NAMES = {
         "hxfba37e91ccc13ec1dab115811f73e429cde44d48": "ICX_Station",
@@ -47,7 +46,7 @@ class Prep(Icx):
         super().__init__(network)
 
     def query_prep_by_name(self, name):
-        preps = self.call(self.GOVERNANCE_CONTRACT, "getPReps", None)["preps"]
+        preps = self.call(self.CHAIN_CONTRACT, "getPReps", None)["preps"]
         prep_map = {}
         for prep in preps:
             prep_map[prep["name"]] = prep
@@ -59,12 +58,12 @@ class Prep(Icx):
                 raise typer.Exit()
 
     def query_prep_by_address(self, address):
-        prep = self.call(self.GOVERNANCE_CONTRACT, "getPRep", {"address": address})
+        prep = self.call(self.CHAIN_CONTRACT, "getPRep", {"address": address})
         return prep
 
     def query_preps(self, range_start, range_end):
         preps = self.call(
-            self.GOVERNANCE_CONTRACT,
+            self.CHAIN_CONTRACT,
             "getPReps",
             {"startRanking": range_start, "endRanking": range_end},
         )["preps"]
@@ -86,7 +85,8 @@ class Prep(Icx):
     def query_prep_count():
         try:
             r = requests.get(
-                "https://tracker.icon.foundation/v3/iiss/prep/list?count=500", timeout=0.5
+                "https://tracker.icon.foundation/v3/iiss/prep/list?count=500",
+                timeout=0.5,
             )
             r.raise_for_status()
             prep_count = r.json()["totalSize"]
