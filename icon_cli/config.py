@@ -91,6 +91,11 @@ class Config:
                 return imported_keystore
 
     @classmethod
+    def get_default_keystore(cls) -> str:
+        config = cls._read_config()
+        return config["default_keystore"]
+
+    @classmethod
     def import_keystore(cls, keystore_path: PosixPath) -> None:
 
         # Get keystore metadata, and calculate hash.

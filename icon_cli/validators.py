@@ -1,6 +1,11 @@
+from getpass import getpass
 from pathlib import PosixPath
 
+from iconsdk.exception import KeyStoreException
+from iconsdk.wallet.wallet import KeyWallet
+
 from icon_cli.config import Config
+from icon_cli.icx import Icx
 from icon_cli.tokens import Tokens
 from icon_cli.utils import die
 
@@ -32,7 +37,7 @@ class Validators(Config):
         return contract
 
     @staticmethod
-    def validate_keystore(keystore_path: PosixPath):
+    def validate_keystore_file(keystore_path: PosixPath):
         valid_keystore_sizes = (509, 512)
         if keystore_path.stat().st_size not in valid_keystore_sizes:
             die(f"This keystore file is not valid.", "error")
@@ -52,9 +57,24 @@ class Validators(Config):
     def validate_uppercase_only(cls, input: str):
         return input.upper()
 
-    @staticmethod
-    def validate_token_ticker(ticker):
+    @classmethod
+    def validate_token_ticker(cls, ticker):
         valid_tokens = Tokens.TOKENS.keys()
         if ticker not in valid_tokens:
             die(f"{ticker} is not supported at this time.", "error")
         return ticker.upper()
+
+    @classmethod
+    def load_wallet_from_keystore(cls, keystore):
+        try:
+            keystore_metadata = Config.get_keystore_metadata(keystore)
+            keystore_filename = keystore_metadata["keystore_filename"]
+            wallet_password = getpass("Keystore Password: ")
+            wallet = KeyWallet.load(
+                f"{Config.keystore_dir}/{keystore_filename}", wallet_password
+            )
+            return wallet
+        except KeyStoreException:
+            die("The password you supplied is incorrect.", "error")
+        except Exception as e:
+            die(e, "error")

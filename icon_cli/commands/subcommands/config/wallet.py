@@ -11,7 +11,7 @@ app = typer.Typer()
 def import_keystore(
     keystore_path: Path = typer.Argument(
         ...,
-        callback=Validators.validate_keystore,
+        callback=Validators.validate_keystore_file,
         exists=True,
         file_okay=True,
         dir_okay=False,
