@@ -81,13 +81,25 @@ class Config:
 
     @classmethod
     def get_default_network(cls) -> str:
-        config = cls._read_config()
-        default_network = config["default_network"]
+        try:
+            config = cls._read_config()
+            default_network = config["default_network"]
+        except KeyError:
+            default_network = "mainnet"
         return default_network
 
     @classmethod
     def get_default_networks(cls) -> dict:
         return cls.default_networks
+
+    @classmethod
+    def set_default_network(cls, network) -> None:
+        with open(cls.config_file, "r+", encoding="utf-8") as config_file:
+            config = yaml.safe_load(config_file)
+            config["default_network"] = network
+            config_file.seek(0)
+            yaml.dump(config, config_file, sort_keys=True)
+            config_file.truncate()
 
     ##########################
     # ADDRESS BOOK FUNCTIONS #

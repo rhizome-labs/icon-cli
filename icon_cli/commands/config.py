@@ -18,3 +18,13 @@ def debug():
 def inspect():
     config = Config.inspect_config()
     print(config)
+
+
+@app.command()
+def set_network(
+    network: str = typer.Argument(..., callback=Validators.validate_network)
+):
+    """
+    Sets the value for "default_network" in config.yml.
+    """
+    Config.set_default_network(network)
