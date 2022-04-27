@@ -51,6 +51,10 @@ class Cps(Icx):
             "get_remaining_project",
             params,
         )
+        for progress_report in progress_reports:
+            for k, v in progress_report.items():
+                if v[:2] == "0x":
+                    progress_report[k] = hex_to_int(v)
         return progress_reports
 
     def get_remaining_proposals_to_vote(self, address: str):
@@ -65,6 +69,32 @@ class Cps(Icx):
                 if v[:2] == "0x":
                     proposal[k] = hex_to_int(v)
         return proposals
+
+    def vote_progress_report(
+        self,
+        wallet,
+        vote: str,
+        reason: str,
+        ipfs_key: str,
+        report_key: str,
+        vote_change: int,
+    ):
+        params = {
+            "_vote": vote,
+            "_vote_reason": reason,
+            "_ipfs_key": ipfs_key,
+            "_report_key": report_key,
+            "_vote_change": vote_change,
+        }
+        transaction = self.build_call_transaction(
+            wallet,
+            Contracts.get_contract_from_name("cps", self.network),
+            0,
+            "vote_progress_report",
+            params,
+        )
+        tx_hash = self.send_transaction(wallet, transaction)
+        return tx_hash
 
     def vote_proposal(
         self, wallet, vote: str, reason: str, ipfs_key: str, vote_change: int
