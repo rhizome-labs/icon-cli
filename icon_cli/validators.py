@@ -5,7 +5,6 @@ from iconsdk.exception import KeyStoreException
 from iconsdk.wallet.wallet import KeyWallet
 
 from icon_cli.config import Config
-from icon_cli.icx import Icx
 from icon_cli.tokens import Tokens
 from icon_cli.utils import die
 
