@@ -8,7 +8,15 @@ app = typer.Typer()
 
 
 @app.command()
-def import_keystore(
+def create():
+    """
+    Create an ICX wallet.
+    """
+    Config.create_keystore()
+
+
+@app.command()
+def load(
     keystore_path: Path = typer.Argument(
         ...,
         callback=Validators.validate_keystore_file,

@@ -1,4 +1,3 @@
-import hashlib
 import io
 import json
 import os
@@ -7,9 +6,10 @@ from pathlib import Path, PosixPath
 
 import typer
 import yaml
+from iconsdk.wallet.wallet import KeyWallet
 from rich import print
 
-from icon_cli.utils import die
+from icon_cli.utils import die, log
 
 
 class Config:
@@ -96,12 +96,16 @@ class Config:
         return config["default_keystore"]
 
     @classmethod
+    def create_keystore(cls) -> None:
+        keystore = KeyWallet.create()
+        print(keystore)
+
+    @classmethod
     def import_keystore(cls, keystore_path: PosixPath) -> None:
 
         # Get keystore metadata, and calculate hash.
         keystore = cls._read_keystore(keystore_path)
         keystore_address = keystore["address"]
-        keystore_hash = hashlib.md5(open(keystore_path, "rb").read()).hexdigest()
 
         # Read icon-cli configuration, and get keystore config.
         config = cls._read_config()
@@ -138,15 +142,14 @@ class Config:
 
         # Copy keystore to ~/.icon-cli/keystore
         cls._copy_file(
-            f"{keystore_path}", f"{cls.config_dir}/keystore/{keystore_hash}.icx"
+            f"{keystore_path}", f"{cls.config_dir}/keystore/{keystore_address}.icx"
         )
 
         # Create JSON payload to write to config.
         keystore_data = {
             "keystore_name": keystore_name,
             "keystore_address": keystore_address,
-            "keystore_hash": keystore_hash,
-            "keystore_filename": f"{keystore_hash}.icx",
+            "keystore_filename": f"{keystore_address}.icx",
         }
 
         # Write keystore name and address to config.json.

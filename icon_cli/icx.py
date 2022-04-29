@@ -126,12 +126,6 @@ class Icx(Config):
         except Exception as e:
             die(e, "error")
 
-    @classmethod
-    def create_wallet(cls, password: str):
-        wallet = KeyWallet.create()
-        wallet.store(cls.keystore_dir, password)
-        return wallet
-
     ##############################
     # INTERNAL UTILITY FUNCTIONS #
     ##############################

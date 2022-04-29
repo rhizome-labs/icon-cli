@@ -1,4 +1,12 @@
+import logging
+import os
+
 import typer
+from dotenv import load_dotenv
+from rich import inspect
+from rich.logging import RichHandler
+
+load_dotenv()
 
 
 def die(message: str, level: str = None):
@@ -24,3 +32,21 @@ def format(value: int, exa: int, round: int = 0):
 
 def hex_to_int(input: str):
     return int(input, 16)
+
+
+def log(message):
+
+    if os.getenv("ENV") == "DEBUG":
+        log_level = "DEBUG"
+    else:
+        log_level = "INFO"
+
+    logging.basicConfig(
+        level=log_level, format="%(message)s", datefmt="[%X]", handlers=[RichHandler()]
+    )
+
+    log = logging.getLogger("rich")
+
+    if log_level == "DEBUG":
+        inspect(message)
+        log.debug(message)
