@@ -3,6 +3,7 @@ from pathlib import PosixPath
 
 from iconsdk.exception import KeyStoreException
 from iconsdk.wallet.wallet import KeyWallet
+from rich import inspect
 
 from icon_cli.config import Config
 from icon_cli.tokens import Tokens
@@ -14,7 +15,7 @@ class Validators(Config):
         super().__init__()
 
     @classmethod
-    def validate_address(cls, address):
+    def validate_address(cls, address: str):
         if address[:2] != "hx" or len(address) != 42:
             die(f"{address} is not a valid ICX address.", "error")
         return address
@@ -51,6 +52,24 @@ class Validators(Config):
         if network not in cls.default_networks.keys():
             die(f"{network} is not a valid network.", "error")
         return network
+
+    @classmethod
+    def validate_token(cls, token: str):
+        if token[:2] == "cx" or len(token) == 42:  # Token contract
+            return token
+        else:
+            try:
+                token_contract = Tokens.get_contract_from_ticker(token.upper())
+                return token_contract
+            except KeyError:
+                die(f"{token} is not a supported token.", "error")
+
+    @classmethod
+    def validate_transaction_value(cls, value: str):
+        try:
+            return float(value)
+        except ValueError:
+            die(f"{value} is not a valid transaction value.", "error")
 
     @classmethod
     def validate_uppercase_only(cls, input: str):

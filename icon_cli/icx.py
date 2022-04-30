@@ -107,6 +107,25 @@ class Icx(Config):
         tracker_endpoint = network["tracker_endpoint"]
         return tracker_endpoint
 
+    #########################
+    # TRANSACTION FUNCTIONS #
+    #########################
+
+    def transfer_token(
+        self,
+        wallet,
+        to_address: str,
+        token_contract: str,
+        value: float,
+        token_precision: int,
+    ):
+        params = {"_value": value * 10**token_precision, "_to": to_address}
+        transaction = self.build_call_transaction(
+            wallet, token_contract, 0, "transfer", params
+        )
+        tx_hash = self.send_transaction(transaction)
+        return tx_hash
+
     ####################
     # WALLET FUNCTIONS #
     ####################

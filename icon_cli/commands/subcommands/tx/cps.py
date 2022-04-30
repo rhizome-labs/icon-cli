@@ -15,10 +15,10 @@ def vote(
         "-n",
         callback=Validators.validate_network,
     ),
-    wallet: str = typer.Option(
+    keystore: str = typer.Option(
         Config.get_default_keystore(),
-        "--wallet",
-        "-w",
+        "--keystore",
+        "-k",
         callback=Validators.load_wallet_from_keystore,
     ),
 ):

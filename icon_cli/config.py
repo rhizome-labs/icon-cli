@@ -9,7 +9,7 @@ import yaml
 from iconsdk.wallet.wallet import KeyWallet
 from rich import print
 
-from icon_cli.utils import die, log
+from icon_cli.utils import die
 
 
 class Config:
