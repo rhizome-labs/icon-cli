@@ -1,312 +1,154 @@
-import os
-from enum import Enum
-from functools import lru_cache
 from getpass import getpass
 from random import randint
-from time import sleep
 
 import requests
 import typer
-from dotenv import load_dotenv
 from iconsdk.builder.call_builder import CallBuilder
 from iconsdk.builder.transaction_builder import (
     CallTransactionBuilder,
-    DeployTransactionBuilder,
-    MessageTransactionBuilder,
     TransactionBuilder,
 )
-from iconsdk.exception import JSONRPCException, KeyStoreException
+from iconsdk.exception import KeyStoreException
 from iconsdk.icon_service import IconService
 from iconsdk.providers.http_provider import HTTPProvider
 from iconsdk.signed_transaction import SignedTransaction
 from iconsdk.wallet.wallet import KeyWallet
-from rich import print
-from rich.console import Console
 
 from icon_cli.config import Config
-from icon_cli.utils import hex_to_int, log
+from icon_cli.utils import die
 
 
-class Icx:
+class Icx(Config):
 
-    EXA = 10**18
-
-    BAND_ORACLE_CONTRACT = "cx087b4164a87fdfb7b714f3bafe9dfb050fd6b132"
-    ICX_GOVERNANCE_CONTRACT_0 = "cx0000000000000000000000000000000000000000"
-    ICX_GOVERNANCE_CONTRACT_1 = "cx0000000000000000000000000000000000000001"
-
-    IRC2_TOKEN_CONTRACTS = {
-        "BALN": "cxf61cd5a45dc9f91c15aa65831a30a90d59a09619",
-        "SICX": "cx2609b924e33ef00b648a409245c7ea394c467824",
-        "TAP": "cxc0b5b52c9f8b4251a47e91dda3bd61e5512cd782",
-    }
+    API_VERSION = 3
 
     def __init__(self, network) -> None:
-
-        if network is None:
-            network = "mainnet"
+        super().__init__()
 
         self.network = network
-        self.api_version = 3
-        self.icon_service, self.nid = self._get_icon_service(self.network)
-        self.tracker_endpoint = self._get_tracker_url(self.network)
-
-    ###################
-    # CALL PRIMITIVES #
-    ###################
+        self.icon_service, self.nid = self._get_icon_service()
 
     def call(self, to, method, params=None):
-        try:
-            call = CallBuilder().to(to).method(method).params(params).build()
-            result = self.icon_service.call(call)
-            return result
-        except JSONRPCException as e:
-            log(e)
-            raise typer.Exit()
-
-    ##################
-    # CALL FUNCTIONS #
-    ##################
-
-    def query_block(self, block: int):
-        block = self.icon_service.get_block(block)
-        return block
-
-    def query_claimable_iscore(self, address: str):
-        params = {"address": address}
-        result = self.call(self.ICX_GOVERNANCE_CONTRACT_0, "queryIScore", params)
-        for k, v in result.items():
-            result[k] = hex_to_int(v)
+        call = CallBuilder().to(to).method(method).params(params).build()
+        result = self.icon_service.call(call)
         return result
 
-    def query_icx_balance(self, address: str):
-        balance = self.icon_service.get_balance(address)
-        return balance
+    def get_balance(self, address: str):
+        result = self.icon_service.get_balance(address)
+        return result
 
-    def query_icx_usd_price(self):
-        params = {"_symbol": "ICX"}
-        result = self.call(self.BAND_ORACLE_CONTRACT, "get_ref_data", params)
-        icx_usd_price = int(result["rate"], 16) / 1000000000
-        return icx_usd_price
+    def get_contract_abi(self, contract: str):
+        url = f"{self._get_tracker_endpoint()}/api/v1/contracts/{contract}"
+        r = requests.get(url)
+        data = r.json()
+        abi = data["abi"]
+        return abi
 
-    def query_latest_block(self):
-        latest_block = self.icon_service.get_block("latest")
-        return latest_block
-
-    def query_token_balance(self, address, ticker: str):
-        tickers = self.IRC2_TOKEN_CONTRACTS
-        contract_address = tickers[ticker.upper()]
-        token_balance = self.call(contract_address, "balanceOf", {"_owner": address})
-        return int(token_balance, 16)
-
-    def query_transaction_result(self, transaction_hash: str):
-        transaction_result = self.icon_service.get_transaction_result(
-            transaction_hash
-        )  # noqa 503
-        transaction_result.pop("logsBloom")
-        return transaction_result
-
-    #####################
-    # TRACKER FUNCTIONS #
-    #####################
-
-    def query_address_info(self, address: str) -> dict:
-        response = self._make_tracker_request(
-            f"/address/info?address={address}"
-        )  # noqa 503
-        return response
-
-    def query_icx_supply(self) -> dict:
-        response = self._make_tracker_request("/main/mainInfo")  # noqa 503
-        return response
+    def get_token_balance(self, address: str, contract: str):
+        result = self.call(contract, "balanceOf", {"_owner": address})
+        return int(result, 16)
 
     ##########################
     # TRANSACTION PRIMITIVES #
     ##########################
 
     def build_transaction(self, wallet, to, value):
-        try:
-            transaction = (
-                TransactionBuilder()
-                .from_(wallet.get_address())
-                .to(to)
-                .value(value)
-                .nid(self.nid)
-                .nonce(self._generate_nonce())
-                .build()
-            )
-            return transaction
-        except Exception as e:
-            log(e)
-            raise typer.Exit()
+        transaction = (
+            TransactionBuilder()
+            .from_(wallet.get_address())
+            .to(to)
+            .value(value)
+            .nid(self.nid)
+            .nonce(self._generate_nonce())
+            .build()
+        )
+        return transaction
 
     def build_call_transaction(
-        self, wallet, to, value: int = 0, method: str = None, params: dict = {}
+        self, wallet, to, value: int = 0, method: str = None, params: dict = None
     ):
-        try:
-            transaction = (
-                CallTransactionBuilder()
-                .from_(wallet.get_address())
-                .to(to)
-                .value(value)
-                .nid(self.nid)
-                .nonce(self._generate_nonce())
-                .method(method)
-                .params(params)
-                .build()
-            )
-            return transaction
-        except Exception as e:
-            log(e)
-            raise typer.Exit()
+        transaction = (
+            CallTransactionBuilder()
+            .from_(wallet.get_address())
+            .to(to)
+            .value(value)
+            .nid(self.nid)
+            .nonce(self._generate_nonce())
+            .method(method)
+            .params(params)
+            .build()
+        )
+        return transaction
 
-    def build_deploy_transaction(self, wallet, to, content, params):
-        try:
-            transaction = (
-                DeployTransactionBuilder()
-                .from_(wallet.get_address())
-                .to(to)
-                .nid(self.nid)
-                .nonce(self._generate_nonce())
-                .content_type("application/zip")
-                .content(content)
-                .params(params)
-                .build()
-            )
-            return transaction
-        except Exception as e:
-            log(e)
-            raise typer.Exit()
-
-    def build_message_transaction(self, wallet, to, data):
-        try:
-            transaction = (
-                MessageTransactionBuilder()
-                .from_(wallet.get_address())
-                .to(to)
-                .nid(self.nid)
-                .nonce(self._generate_nonce())
-                .data(data)
-                .build()
-            )
-            return transaction
-        except Exception as e:
-            log(e)
-            raise typer.Exit()
-
-    def send_transaction(
-        self,
-        wallet,
-        transaction,
-        broadcast_message: str = "Broadcasting transaction...",
-        verify_transaction: bool = True,
-    ):
+    def send_transaction(self, wallet, transaction):
         try:
             step_limit = self.icon_service.estimate_step(transaction) + 100000
-            print(step_limit)
             signed_transaction = SignedTransaction(transaction, wallet, int(step_limit))
-            print(signed_transaction)
-            transaction_hash = self.icon_service.send_transaction(signed_transaction)
-            print(transaction_hash)
-            if verify_transaction is True:
-                transaction_result = self._get_transaction_result(
-                    transaction_hash, broadcast_message
-                )
-                return transaction_result
-            else:
-                return transaction_hash
-        except JSONRPCException as e:
-            log(e)
-            raise typer.Exit()
+            tx_hash = self.icon_service.send_transaction(signed_transaction)
+            return tx_hash
         except Exception as e:
-            log(e)
+            die(e, "error")
+
+    def _get_icon_service(self):
+        try:
+            network = self.default_networks[self.network]
+            api_endpoint = network["api_endpoint"]
+            nid = network["nid"]
+            return (
+                IconService(HTTPProvider(api_endpoint, self.API_VERSION)),
+                nid,
+            )
+        except KeyError:
+            print(f"ERROR: {network} is not a supported network.")
             raise typer.Exit()
+
+    def _get_tracker_endpoint(self):
+        network = self.default_networks[self.network]
+        tracker_endpoint = network["tracker_endpoint"]
+        return tracker_endpoint
+
+    #########################
+    # TRANSACTION FUNCTIONS #
+    #########################
+
+    def transfer_token(
+        self,
+        wallet,
+        to_address: str,
+        token_contract: str,
+        value: float,
+        token_precision: int,
+    ):
+        params = {"_to": to_address, "_value": value * 10**token_precision}
+        transaction = self.build_call_transaction(
+            wallet, token_contract, 0, "transfer", params
+        )
+        tx_hash = self.send_transaction(transaction)
+        return tx_hash
 
     ####################
     # WALLET FUNCTIONS #
     ####################
 
-    def load_wallet(self, keystore: str):
+    @classmethod
+    def load_wallet(cls, keystore: str):
         try:
-            load_dotenv()
             keystore_metadata = Config.get_keystore_metadata(keystore)
             keystore_filename = keystore_metadata["keystore_filename"]
-            keystore_name = keystore_metadata["keystore_name"]
-            if os.getenv(keystore_name.upper()) is not None:
-                wallet_password = os.getenv(keystore_name.upper())
-            else:
-                wallet_password = getpass("Keystore Password: ")
+            wallet_password = getpass("Keystore Password: ")
             wallet = KeyWallet.load(
                 f"{Config.keystore_dir}/{keystore_filename}", wallet_password
             )
             return wallet
         except KeyStoreException:
-            print("Sorry, the password you supplied is incorrect.")
-            raise typer.Exit()
+            die("The password you supplied is incorrect.", "error")
         except Exception as e:
-            log(e)
-            raise typer.Exit()
-
-    ##############################
-    # EXTERNAL UTILITY FUNCTIONS #
-    ##############################
-
-    def get_event_logs(self, transaction_hash):
-        event_logs = self.icon_service.get_transaction_result(transaction_hash)
-        return event_logs
+            die(e, "error")
 
     ##############################
     # INTERNAL UTILITY FUNCTIONS #
     ##############################
 
-    def _generate_nonce(self, length=8):
+    def _generate_nonce(self, length=6):
         nonce = int("".join([str(randint(0, 9)) for i in range(length)]))  # noqa 503
         return nonce
-
-    @lru_cache()
-    def _get_icon_service(self, network: str):
-        default_networks = Config.get_default_networks()
-        endpoint_hostname, nid = default_networks.get(network)
-        return (
-            IconService(HTTPProvider(endpoint_hostname, self.api_version)),
-            nid,
-        )
-
-    @lru_cache()
-    def _get_tracker_url(self, network: str):
-        if network == "mainnet":
-            return "https://tracker.icon.foundation/v3"
-        else:
-            print("This command is only supported on mainnet.")
-            raise typer.Exit()
-
-    def _make_tracker_request(self, url):
-        try:
-            response = requests.get(f"{self.tracker_endpoint}{url}")
-            response.raise_for_status()
-            return response.json()["data"]
-        except Exception as e:
-            log(e)
-            raise typer.Exit()
-
-    def _get_transaction_result(self, transaction_hash, broadcast_message):
-        console = Console()
-        with console.status(f"[bold green]{broadcast_message}"):
-            while True:
-                try:
-                    transaction_result = self.icon_service.get_transaction_result(
-                        transaction_hash
-                    )
-                    if transaction_result["status"] == 1:
-                        break
-                except JSONRPCException:
-                    sleep(0.5)
-                    continue
-            return transaction_result
-
-
-class IcxNetwork(str, Enum):
-    mainnet = "mainnet"
-    euljiro = "euljiro"
-    yeouido = "yeouido"
-    local = "local"

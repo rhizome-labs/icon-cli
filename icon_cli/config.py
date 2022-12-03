@@ -1,16 +1,19 @@
-import hashlib
 import io
 import json
 import os
-import requests
 import shutil
+from pathlib import Path, PosixPath
+
 import typer
 import yaml
-from functools import lru_cache
-from pathlib import Path, PosixPath
+from iconsdk.wallet.wallet import KeyWallet
+from rich import print
+
+from icon_cli.utils import die
 
 
 class Config:
+
     config_dir = f"{Path.home()}/.icon-cli"
     config_file = f"{config_dir}/config.yml"
     data_dir = f"{config_dir}/data"
@@ -23,67 +26,99 @@ class Config:
         "default_network": "mainnet",
         "keystores": [],
         "query_only": False,
-        "saved_addresses": [],
+        "saved_addresses": {},
     }
 
     default_networks = {
-        "mainnet": ["https://ctz.solidwallet.io", 1],
-        "euljiro": ["https://test-ctz.solidwallet.io", 2],
-        "yeouido": ["https://bicon.net.solidwallet.io", 3],
-        "local": ["http://localhost:9000", 3],
+        "mainnet": {
+            "api_endpoint": "https://ctz.solidwallet.io",
+            "nid": 1,
+            "tracker_endpoint": "https://tracker.icon.community",
+        },
+        "lisbon": {
+            "api_endpoint": "https://lisbon.net.solidwallet.io",
+            "nid": 2,
+            "tracker_endpoint": "https://lisbon.tracker.solidwallet.io",
+        },
+        "berlin": {
+            "api_endpoint": "https://berlin.net.solidwallet.io",
+            "nid": 7,
+            "tracker_endpoint": "https://berlin.tracker.solidwallet.io",
+        },
+        "sejong": {
+            "api_endpoint": "https://sejong.net.solidwallet.io",
+            "nid": 83,
+            "tracker_endpoint": "https://sejong.tracker.solidwallet.io",
+        },
     }
 
-    ######################
-    # KEYSTORE FUNCTIONS #
-    ######################
+    def __init__(self) -> None:
+        pass
 
     @classmethod
-    @lru_cache()
-    def get_default_keystore(cls) -> str:
-        config = cls._read_config()
-        default_keystore = config["default_keystore"]
-        return default_keystore
+    def initialize_config(cls) -> None:
+
+        required_dirs = [
+            cls.config_dir,
+            cls.data_dir,
+            cls.history_dir,
+            cls.keystore_dir,
+        ]
+
+        for dir in required_dirs:
+            if not Path(dir).is_dir():
+                print(f"{dir} does not exist. Creating directory now...")
+                cls._create_directory(dir)
+
+        if not os.path.exists(cls.config_file):
+            print(f"Creating config file at {cls.config_file} now...")
+            with open(cls.config_file, "w+", encoding="utf-8") as config_file:
+                yaml.dump(cls.default_config, config_file, sort_keys=True)
 
     @classmethod
-    @lru_cache()
-    def get_imported_keystores(cls) -> list:
-        config = cls._read_config()
-        return config["keystores"]
+    def inspect_config(cls) -> dict:
+        return cls._read_config()
+
+    ####################
+    # WALLET FUNCTIONS #
+    ####################
 
     @classmethod
-    @lru_cache()
-    def get_keystore_metadata(cls, keystore_name) -> dict:
+    def get_keystore_metadata(cls, keystore: str) -> dict:
         config = cls._read_config()
         for imported_keystore in config["keystores"]:
-            if keystore_name == imported_keystore["keystore_name"]:
+            if keystore == imported_keystore["keystore_name"]:
                 return imported_keystore
 
     @classmethod
-    def get_keystore_address(cls, keystore_name) -> dict:
+    def get_default_keystore(cls) -> str:
         config = cls._read_config()
-        for imported_keystore in config["keystores"]:
-            if keystore_name == imported_keystore["keystore_name"]:
-                return imported_keystore["keystore_address"]
+        return config["default_keystore"]
+
+    @classmethod
+    def create_keystore(cls) -> None:
+        keystore = KeyWallet.create()
+        print(keystore)
 
     @classmethod
     def import_keystore(cls, keystore_path: PosixPath) -> None:
-        # Get keystore address.
-        _, keystore_address, keystore_hash = cls._read_keystore(keystore_path)  # noqa 503
+
+        # Get keystore metadata, and calculate hash.
+        keystore = cls._read_keystore(keystore_path)
+        keystore_address = keystore["address"]
 
         # Read icon-cli configuration, and get keystore config.
         config = cls._read_config()
         default_keystore_config = config["default_keystore"]
         keystore_config = config["keystores"]
 
-        # Check if address is already used in imported keystores.
         if len(keystore_config) > 0:
             for imported_keystore in keystore_config:
                 if keystore_address == imported_keystore["keystore_address"]:
-                    print(
-                        f"An imported keystore ({imported_keystore['keystore_name']}) with the address {keystore_address} already exists."  # noqa 503
+                    die(
+                        f"An imported keystore ({imported_keystore['keystore_name']}) with the address {keystore_address} already exists.",
+                        "error",
                     )
-                    print("Exiting now...")
-                    raise typer.Exit()
 
         # Prompt user to specify a nickname for the keystore.
         keystore_name = typer.prompt("Please specify a nickname for this keystore")
@@ -91,9 +126,10 @@ class Config:
         if len(keystore_config) > 0:
             for imported_keystore in keystore_config:
                 if keystore_name == imported_keystore["keystore_name"]:
-                    print(f"An imported keystore named {keystore_name} already exists.")
-                    print("Exiting now...")
-                    raise typer.Exit()
+                    die(
+                        f"An imported keystore named {keystore_name} already exists.",
+                        "error",
+                    )
 
         # If there are no existing keystores, or if default keystore is not set, prompt user to choose whether to set keystore as default. # noqa 503
         if default_keystore_config is None:
@@ -105,14 +141,15 @@ class Config:
                     cls._write_config("default_keystore", keystore_name)
 
         # Copy keystore to ~/.icon-cli/keystore
-        cls._copy_file(f"{keystore_path}", f"{cls.config_dir}/keystore/{keystore_hash}.icx")
+        cls._copy_file(
+            f"{keystore_path}", f"{cls.config_dir}/keystore/{keystore_address}.icx"
+        )
 
         # Create JSON payload to write to config.
         keystore_data = {
             "keystore_name": keystore_name,
             "keystore_address": keystore_address,
-            "keystore_hash": keystore_hash,
-            "keystore_filename": f"{keystore_hash}.icx",
+            "keystore_filename": f"{keystore_address}.icx",
         }
 
         # Write keystore name and address to config.json.
@@ -125,15 +162,23 @@ class Config:
 
         print("Keystore has been imported successfully.")
 
-    #####################
+    @classmethod
+    def _read_keystore(cls, keystore_path: PosixPath) -> tuple:
+        with io.open(keystore_path, "r", encoding="utf-8-sig") as keystore_file:
+            keystore = json.load(keystore_file)
+            return keystore
+
+    ######################
     # NETWORK FUNCTIONS #
-    #####################
+    ######################
 
     @classmethod
-    @lru_cache()
     def get_default_network(cls) -> str:
-        config = cls._read_config()
-        default_network = config["default_network"]
+        try:
+            config = cls._read_config()
+            default_network = config["default_network"]
+        except KeyError:
+            default_network = "mainnet"
         return default_network
 
     @classmethod
@@ -141,66 +186,35 @@ class Config:
         return cls.default_networks
 
     @classmethod
-    def set_default_network(cls, network: str) -> None:
-        if network in cls.default_networks.keys():
-            try:
-                print(f"Setting default network to {network}.")
-                cls._write_config("default_network", network)
-                print(f"Success! Default network has been set to {network}.")
-            except Exception as e:
-                print(e)
-                raise typer.Exit()
-        else:
-            print(f"{network} is not a supported network.")
-            raise typer.Exit()
+    def set_default_network(cls, network) -> None:
+        with open(cls.config_file, "r+", encoding="utf-8") as config_file:
+            config = yaml.safe_load(config_file)
+            config["default_network"] = network
+            config_file.seek(0)
+            yaml.dump(config, config_file, sort_keys=True)
+            config_file.truncate()
 
-    ##############################
-    # EXTERNAL UTILITY FUNCTIONS #
-    ##############################
+    ##########################
+    # ADDRESS BOOK FUNCTIONS #
+    ##########################
 
     @classmethod
-    def delete_config(cls) -> None:
-        cls._delete_file(cls.config_file)
+    def add_address_to_address_book(cls, address: str, name: str):
+        with open(cls.config_file, "r+", encoding="utf-8") as config_file:
+            config = yaml.safe_load(config_file)
+            config["saved_addresses"][name] = address
+            config_file.seek(0)
+            yaml.dump(config, config_file, sort_keys=True)
+            config_file.truncate()
 
     @classmethod
-    def initialize_config(cls) -> None:
-
-        required_directories = [
-            cls.config_dir,
-            cls.data_dir,
-            cls.history_dir,
-            cls.keystore_dir,
-        ]
-
-        for directory in required_directories:
-            if not Path(directory).is_dir():
-                print(f"{directory} does not exist. Creating directory now...")
-                cls._create_directory(directory)
-
-        if not os.path.exists(cls.config_file):
-            print(f"Creating config file at {cls.config_file} now...")
-            with open(cls.config_file, "w+", encoding="utf-8") as config_file:
-                yaml.dump(cls.default_config, config_file, sort_keys=True)
-                print(f"Config file has been successfully created at {cls.config_file}.")
-
-    @classmethod
-    def inspect_config(cls) -> dict:
-        return cls._read_config()
-
-    @classmethod
-    def list_imported_keystore_names(cls):
-        config = cls._read_config()
-        imported_keystores = config["keystores"]
-        if len(imported_keystores) > 0:
-            keystore_names = [keystore["keystore_name"] for keystore in imported_keystores]
-            return keystore_names
-        else:
-            print("There are no imported keystores.")
-            raise typer.Exit()
-
-    @staticmethod
-    def ping():
-        requests.head("https://icon-cli-analytics.rhizome.workers.dev", timeout=0.5)
+    def delete_address_from_address_book(cls, name: str):
+        with open(cls.config_file, "r+", encoding="utf-8") as config_file:
+            config = yaml.safe_load(config_file)
+            config["saved_addresses"].pop(name)
+            config_file.seek(0)
+            yaml.dump(config, config_file, sort_keys=True)
+            config_file.truncate()
 
     ##############################
     # INTERNAL UTILITY FUNCTIONS #
@@ -232,25 +246,15 @@ class Config:
     @classmethod
     def _write_config(cls, key: str, value: str):
         if not isinstance(value, str):
-            print("Sorry, only string values are supported.")
-            raise typer.Exit()
+            die("Only string values are supported.", "error")
         if key in cls._list_config_keys():
-            with open(cls.config_file, "r+", encoding="utf-8") as config_file:  # noqa 503
-                config = yaml.full_load(config_file)
+            with open(
+                cls.config_file, "r+", encoding="utf-8"
+            ) as config_file:  # noqa 503
+                config = yaml.safe_load(config_file)
                 config[key] = value
                 config_file.seek(0)
                 yaml.dump(config, config_file, sort_keys=True)
                 config_file.truncate()
         else:
-            print(f"Sorry, {key} is not a valid configuration key.")
-            raise typer.Exit()
-
-    @classmethod
-    def _read_keystore(cls, keystore_path: str) -> tuple:
-        with io.open(keystore_path, "r", encoding="utf-8-sig") as keystore_file:
-            keystore_json = json.load(keystore_file)
-            keystore_address = keystore_json["address"]
-        keystore_hash = hashlib.md5(
-            open(keystore_path, "rb").read()
-        ).hexdigest()
-        return keystore_json, keystore_address, keystore_hash
+            die(f"{key} is not a valid configuration key.", "error")

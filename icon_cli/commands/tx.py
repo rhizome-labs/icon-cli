@@ -1,91 +1,41 @@
-import csv
-
 import typer
-from icon_cli.callbacks import Callbacks
-from icon_cli.commands.subcommands.tx import balanced, gov, omm
+from icon_cli.commands.subcommands.tx import balanced, cps
 from icon_cli.config import Config
-from icon_cli.icx import Icx, IcxNetwork
-from icon_cli.utils import print_object
-from rich import print
+from icon_cli.icx import Icx
+from icon_cli.tokens import Tokens
+from icon_cli.validators import Validators
 
 app = typer.Typer()
 
+app.add_typer(cps.app, name="cps")
 app.add_typer(balanced.app, name="balanced")
-app.add_typer(gov.app, name="gov")
-app.add_typer(omm.app, name="omm")
-
-
-@app.command()
-def debug():
-    print_object(__name__)
 
 
 @app.command()
 def send(
-    to: str = typer.Argument(..., callback=Callbacks.validate_icx_address),
-    value: str = typer.Argument(..., callback=Callbacks.validate_transaction_value),
-    keystore: str = typer.Option(
-        Config.get_default_keystore(),
-        "--keystore",
-        "-k",
-        callback=Callbacks.load_wallet_from_keystore,
-    ),
-    network: IcxNetwork = typer.Option(
+    to: str = typer.Argument(..., callback=Validators.validate_address),
+    value: str = typer.Argument(..., callback=Validators.validate_transaction_value),
+    network: str = typer.Option(
         Config.get_default_network(),
         "--network",
         "-n",
-        callback=Callbacks.enforce_mainnet,
-        case_sensitive=False,
+        callback=Validators.validate_network,
     ),
-    simulation: bool = typer.Option(False, "--simulate", "-s"),
-    confirmation: bool = typer.Option(True, "--confirm", "-c"),
-    file: str = typer.Option(None, "--file", "-f"),
-):
-    icx = Icx(network)
-
-    transaction = icx.build_transaction(keystore, to, value)
-
-    if simulation:
-        print_object(transaction)
-    else:
-        if confirmation:
-            prompt = typer.confirm("Please confirm transaction details.")
-            if not prompt:
-                print("Exiting now...")
-                raise typer.Exit()
-        transaction_result = icx.send_transaction(keystore, transaction)
-        print(transaction_result)
-
-
-# @app.command()
-def send_batch(
-    file: str = typer.Argument(...),
-    keystore: str = typer.Option(
+    wallet: str = typer.Option(
         Config.get_default_keystore(),
         "--keystore",
         "-k",
-        callback=Callbacks.load_wallet_from_keystore,
+        callback=Validators.load_wallet_from_keystore,
     ),
-    network: IcxNetwork = typer.Option(
-        Config.get_default_network(),
-        "--network",
-        "-n",
-        callback=Callbacks.enforce_mainnet,
-        case_sensitive=False,
+    token: str = typer.Option(
+        None, "--token", "-t", callback=Validators.validate_token
     ),
-    simulation: bool = typer.Option(False, "--simulate", "-s"),
-    confirmation: bool = typer.Option(True, "--confirm", "-c"),
 ):
-    icx = Icx(network)
-
-    transactions = []
-
-    if file is not None:
-
-        with open(file) as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter=",")
-            next(csv_reader, None)  # Skip headers.
-            transactions = [
-                icx.build_transaction(keystore, row[0], row[1]) for row in csv_reader
-            ]
-            print(transactions)
+    _icx = Icx(network)
+    if token is not None:  # Token transfer
+        token_precision = Tokens.get_token_precision_from_contract(token)
+        tx_hash = _icx.transfer_token(wallet, to, token, value, token_precision)
+        print(tx_hash)
+    else:  # ICX transfer
+        tx_hash = _icx.build_transaction(wallet, to, value * 10**18)
+        print(tx_hash)
