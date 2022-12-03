@@ -119,7 +119,7 @@ class Icx(Config):
         value: float,
         token_precision: int,
     ):
-        params = {"_value": value * 10**token_precision, "_to": to_address}
+        params = {"_to": to_address, "_value": value * 10**token_precision}
         transaction = self.build_call_transaction(
             wallet, token_contract, 0, "transfer", params
         )
@@ -149,6 +149,6 @@ class Icx(Config):
     # INTERNAL UTILITY FUNCTIONS #
     ##############################
 
-    def _generate_nonce(self, length=8):
+    def _generate_nonce(self, length=6):
         nonce = int("".join([str(randint(0, 9)) for i in range(length)]))  # noqa 503
         return nonce

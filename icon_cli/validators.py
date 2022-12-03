@@ -1,9 +1,10 @@
+import os
 from getpass import getpass
 from pathlib import PosixPath
 
+from dotenv import load_dotenv
 from iconsdk.exception import KeyStoreException
 from iconsdk.wallet.wallet import KeyWallet
-from rich import inspect
 
 from icon_cli.config import Config
 from icon_cli.tokens import Tokens
@@ -48,13 +49,15 @@ class Validators(Config):
         return input.lower()
 
     @classmethod
-    def validate_network(cls, network):
+    def validate_network(cls, network: str):
         if network not in cls.default_networks.keys():
             die(f"{network} is not a valid network.", "error")
         return network
 
     @classmethod
     def validate_token(cls, token: str):
+        if token is None:
+            return token
         if token[:2] == "cx" or len(token) == 42:  # Token contract
             return token
         else:
@@ -87,7 +90,11 @@ class Validators(Config):
         try:
             keystore_metadata = Config.get_keystore_metadata(keystore)
             keystore_filename = keystore_metadata["keystore_filename"]
-            wallet_password = getpass("Keystore Password: ")
+            keystore_name = keystore_metadata["keystore_name"]
+            if os.getenv(keystore_name.upper()):
+                wallet_password = os.getenv(keystore_name.upper())
+            else:
+                wallet_password = getpass("Keystore Password: ")
             wallet = KeyWallet.load(
                 f"{Config.keystore_dir}/{keystore_filename}", wallet_password
             )

@@ -17,7 +17,8 @@ class Cps(Icx):
     def get_active_proposals(self) -> list:
         contributor_addresses = self.get_contributors()
         active_proposals = []
-        for contributor_address in contributor_addresses:
+        for contributor_address in list(set(contributor_addresses)):
+            print(contributor_address)
             proposals = self._get_active_proposals(contributor_address)
             if len(proposals) > 0:
                 for proposal in proposals:
@@ -31,7 +32,7 @@ class Cps(Icx):
         return active_proposals
 
     def get_progress_reports(self):
-        params = {"_status": "_waiting", "_end_index": 50, "_start_index": 0}
+        params = {"_status": "_waiting", "_start_index": 0}
         progress_reports = self.call(
             Contracts.get_contract_from_name("cps", self.network),
             "get_progress_reports",
@@ -45,7 +46,7 @@ class Cps(Icx):
         return progress_reports
 
     def get_remaining_progress_reports_to_vote(self, address: str):
-        params = {"_wallet_address": address, "_project_type": "progress_report"}
+        params = {"_wallet_address": address, "_project_type": "progress_reports"}
         progress_reports = self.call(
             Contracts.get_contract_from_name("cps", self.network),
             "get_remaining_project",
@@ -120,11 +121,9 @@ class Cps(Icx):
     ################
 
     def get_contributors(self) -> list:
-        params = {"_start_index": 0, "_end_index": 100}
         contributors = self.call(
             Contracts.get_contract_from_name("cps", self.network),
             "get_contributors",
-            params,
         )
         return contributors
 

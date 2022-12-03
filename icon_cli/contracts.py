@@ -12,6 +12,9 @@ class Contracts:
         "balanced_reserve_fund": {
             "mainnet": "cxf58b9a1898998a31be7f1d99276204a3333ac9b3"
         },
+        "balanced_stability_fund": {
+            "mainnet": "cxa09dbb60dcb62fffbd232b6eae132d730a2aafa6"
+        },
         "cps": {"mainnet": "cx9f4ab72f854d3ccdc59aa6f2c3e2215dd62e879f"},
     }
 
