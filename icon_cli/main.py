@@ -1,4 +1,5 @@
 import typer
+
 from icon_cli.commands import config, query, tx
 
 app = typer.Typer()
