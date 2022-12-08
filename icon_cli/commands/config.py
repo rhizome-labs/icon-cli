@@ -1,5 +1,5 @@
 import typer
-from rich.pretty import pprint
+from rich import print
 
 from icon_cli.config import Config
 from icon_cli.utils import Utils
@@ -14,7 +14,7 @@ def view() -> None:
     """
     # Read config.
     config = Config.read_config()
-    pprint(config.dict(), expand_all=True)
+    print(config.dict())
 
 
 @app.command()
@@ -33,7 +33,7 @@ def mode() -> None:
         if mode_prompt is True:
             config.mode = "rw"
             Config.write_config(config)
-            pprint(f"SUCCESS: icon-cli has been set to read/write mode.")
+            print(f"SUCCESS: icon-cli has been set to read/write mode.")
     # Prompt user to change to "r" mode if current mode is "rw".
     else:
         mode_prompt = typer.confirm(
@@ -42,7 +42,7 @@ def mode() -> None:
         if mode_prompt is True:
             config.mode = "r"
             Config.write_config(config)
-            pprint(f"SUCCESS: icon-cli has been set to read-only mode.")
+            print(f"SUCCESS: icon-cli has been set to read-only mode.")
 
 
 @app.command()
@@ -63,4 +63,4 @@ def network(network: str = typer.Argument(...)) -> None:
     config.default_network = network
     # Write config to disk.
     Config.write_config(config)
-    pprint(f"SUCCESS: Default network has been set to {network}.")
+    print(f"SUCCESS: Default network has been set to {network}.")

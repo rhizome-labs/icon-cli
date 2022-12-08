@@ -1,11 +1,14 @@
+import getpass
 from functools import lru_cache
 
 from iconsdk.builder.call_builder import CallBuilder
+from iconsdk.exception import KeyStoreException
 from iconsdk.icon_service import IconService
 from iconsdk.providers.http_provider import HTTPProvider
 from iconsdk.wallet.wallet import KeyWallet
 
 from icon_cli.config import Config
+from icon_cli.utils import Utils
 
 
 class Icx(Config):
@@ -16,7 +19,7 @@ class Icx(Config):
         super().__init__()
 
         self.network = network
-        self.icon_service, self.nid = self._get_icon_service_and_nid()
+        self.icon_service, self.nid = self._get_icon_service_and_nid(self.network)
 
     def call(
         self,
@@ -29,13 +32,32 @@ class Icx(Config):
         result = self.icon_service.call(call)
         return result
 
+    ##################
+    # Wallet Methods #
+    ##################
+
+    def load_wallet(self, keystore: str):
+        try:
+            keystore_metadata = Config.get_keystore_metadata(keystore)
+            keystore_filename = keystore_metadata["keystore_filename"]
+            wallet_password = getpass("Keystore Password: ")
+            wallet = KeyWallet.load(
+                f"{Config.keystore_dir}/{keystore_filename}",
+                wallet_password,
+            )
+            return wallet
+        except KeyStoreException:
+            Utils.die("The password you supplied is incorrect.", "error")
+        except Exception as e:
+            Utils.die(e, "error")
+
     ##########################
     # Built-In Query Methods #
     ##########################
 
     def get_block(
         self,
-        block_height: int = "latest",
+        block_height: int = -1,
     ) -> dict:
         """
         Returns information about a specific block on the ICON blockchain.
@@ -43,6 +65,8 @@ class Icx(Config):
         Args:
             block_height: The block height to query.
         """
+        if block_height == -1:
+            block_height = "latest"
         result = self.icon_service.get_block(block_height)
         return result
 

@@ -46,6 +46,12 @@ class Utils:
 
     @staticmethod
     def validate_address(address: str) -> str:
+        """
+        Returns an ICX wallet or contract address if validation passes.
+
+        Args:
+            address: An ICX wallet or contract address.
+        """
         try:
             # Convert address to lowercase.
             address = address.casefold()
@@ -61,6 +67,23 @@ class Utils:
         except:
             # Die if address is not validated successfully.
             Utils.die(f"{address} is not a valid ICX wallet or contract address.", "error")  # fmt: skip
+
+    @staticmethod
+    def validate_tx_hash(tx_hash: str) -> str:
+        """
+        Returns an ICX transaction hash if validation passes.
+
+        Args:
+            tx_hash: An ICX transaction hash.
+        """
+        # Convert transaction hash to lowercase.
+        tx_hash = tx_hash.casefold()
+        # Validate ICX transaction hash.
+        if len(tx_hash) == 66 and tx_hash.startswith("0x"):
+            return tx_hash
+        else:
+            # Die if address is not validated successfully.
+            Utils.die(f"{tx_hash} is not a valid ICX transaction hash.", "error")  # fmt: skip
 
     @staticmethod
     def validate_url(url: str) -> str:

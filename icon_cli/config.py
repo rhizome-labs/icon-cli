@@ -2,16 +2,11 @@ import io
 import json
 import os
 import shutil
-from functools import lru_cache
 from pathlib import Path, PosixPath
 
-import typer
 import yaml
-from iconsdk.wallet.wallet import KeyWallet
-from rich import print
 
 from icon_cli.models import AppConfig, IcxNetwork
-from icon_cli.utils import Utils
 
 
 class Config:
@@ -81,7 +76,6 @@ class Config:
         default_network = config.default_network
         return default_network
 
-    @lru_cache(maxsize=1)
     @classmethod
     def read_config(cls) -> AppConfig:
         config = cls._read_config()
@@ -89,13 +83,41 @@ class Config:
 
     @classmethod
     def write_config(cls, config: AppConfig) -> None:
+        """
+        Writes an AppConfig object to config.yml file on disk.
+
+        Args:
+            config: An AppConfig object containing an icon-cli configuration.
+        """
         with open(cls.CONFIG_FILE, "w+") as f:
             yaml.safe_dump(config.dict(), f)
         return
 
-    ######################
-    # INTERNAL FUNCTIONS #
-    ######################
+    ####################
+    # KEYSTORE METHODS #
+    ####################
+
+    @classmethod
+    def import_keystore(cls, keystore_path: PosixPath) -> None:
+        """
+        Imports an ICX keystore.
+
+        Args:
+            keystore_path: The file path to the keystore JSON file to import.
+        """
+        # Get keystore metadata, and calculate hash.
+        keystore = cls._read_keystore(keystore_path)
+        keystore_address = keystore["address"]
+
+    @classmethod
+    def _read_keystore(cls, keystore_path: PosixPath) -> tuple:
+        with io.open(keystore_path, "r", encoding="utf-8-sig") as keystore_file:
+            keystore = json.load(keystore_file)
+            return keystore
+
+    ####################
+    # INTERNAL METHODS #
+    ####################
 
     @classmethod
     def _read_config(cls) -> AppConfig:

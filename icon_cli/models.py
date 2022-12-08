@@ -28,16 +28,6 @@ class IcxNetwork(BaseModel):
         return url
 
 
-class IcxKeystore(BaseModel):
-    name: str
-    file_path: PosixPath
-
-    @validator("name")
-    def validate_name(cls, name: str) -> str:
-        name = Utils.strip_all_whitespace(name, force_lowercase=True)
-        return name
-
-
 class SavedIcxAddress(BaseModel):
     address: str
 
@@ -51,7 +41,7 @@ class AppConfig(BaseModel):
     custom_networks: Dict[str, IcxNetwork] = {}
     default_keystore: str = None
     default_network: str = "mainnet"
-    keystores: Dict[str, IcxKeystore] = {}
+    keystores: List[str] = []
     mode: str = "rw"
     saved_addresses: Dict[str, SavedIcxAddress] = {}
 
