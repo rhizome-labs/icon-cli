@@ -1,4 +1,5 @@
 import typer
+from yarl import URL
 
 
 class Utils:
@@ -60,3 +61,11 @@ class Utils:
         except:
             # Die if address is not validated successfully.
             Utils.die(f"{address} is not a valid ICX wallet or contract address.", "error")  # fmt: skip
+
+    @staticmethod
+    def validate_url(url: str) -> str:
+        try:
+            URL(url)
+            return url
+        except:
+            Utils.die(f"{url} is not a valid HTTP URL.", "error")

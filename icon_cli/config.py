@@ -27,21 +27,25 @@ class Config:
 
     DEFAULT_NETWORKS = {
         "mainnet": IcxNetwork(
-            api_endpoint="https://ctz.solidwallet.io",
+            name="mainnet",
+            api_endpoint="https://api.icon.community",
             nid=1,
             tracker_endpoint="https://tracker.icon.community",
         ),
         "lisbon": IcxNetwork(
+            name="lisbon",
             api_endpoint="https://lisbon.net.solidwallet.io",
             nid=2,
             tracker_endpoint="https://lisbon.tracker.solidwallet.io",
         ),
         "berlin": IcxNetwork(
+            name="berlin",
             api_endpoint="https://berlin.net.solidwallet.io",
             nid=7,
             tracker_endpoint="https://berlin.tracker.solidwallet.io",
         ),
         "sejong": IcxNetwork(
+            name="sejong",
             api_endpoint="https://sejong.net.solidwallet.io",
             nid=83,
             tracker_endpoint="https://sejong.tracker.solidwallet.io",
@@ -52,7 +56,7 @@ class Config:
         pass
 
     @classmethod
-    def initialize(cls, validate_config_file: bool = True) -> None:
+    def initialize_config(cls, validate_config_file: bool = True) -> None:
         """
         An initialization function that ensures required directories and config file exists.
         """
@@ -65,15 +69,37 @@ class Config:
         # Create a config file with the contents of DEFAULT_CONFIG if it does not exist.
         if not os.path.exists(cls.CONFIG_FILE):
             print(f"Creating config file at {cls.CONFIG_FILE} now...")
-            with open(cls.CONFIG_FILE, "w+", encoding="utf-8") as CONFIG_FILE:
-                yaml.dump(cls.DEFAULT_CONFIG, CONFIG_FILE, sort_keys=True)
+            with open(cls.CONFIG_FILE, "w+", encoding="utf-8") as f:
+                yaml.safe_dump(cls.DEFAULT_CONFIG.dict(), f)
 
         return
 
     @classmethod
-    def read(cls) -> dict:
+    def get_config_default_network(cls) -> str:
+        config = cls._read_config()
+        default_network = config.default_network
+        return default_network
+
+    @classmethod
+    def read_config(cls) -> AppConfig:
+        config = cls._read_config()
+        return config
+
+    @classmethod
+    def write_config(cls, config: AppConfig) -> None:
+        with open(cls.CONFIG_FILE, "w+") as f:
+            yaml.safe_dump(config.dict(), f)
+        return
+
+    ######################
+    # INTERNAL FUNCTIONS #
+    ######################
+
+    @classmethod
+    def _read_config(cls) -> AppConfig:
         with open(cls.CONFIG_FILE, "r") as f:
-            config = yaml.safe_load(f)
+            data = yaml.safe_load(f)
+            config = AppConfig(**data)
         return config
 
     @staticmethod

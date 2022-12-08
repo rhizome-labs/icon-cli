@@ -9,14 +9,24 @@ from icon_cli.utils import Utils
 
 class IcxNetwork(BaseModel):
     name: str
-    api_endpoint: URL
+    api_endpoint: str
     nid: int
-    tracker_endpoint: URL
+    tracker_endpoint: str
 
     @validator("name")
-    def validate_name(cls, name):
+    def validate_name(cls, name: str):
         name = Utils.strip_all_whitespace(name, force_lowercase=True)
         return name
+
+    @validator("api_endpoint")
+    def validate_api_endpoint(cls, api_endpoint: str):
+        url = Utils.validate_url(api_endpoint)
+        return url
+
+    @validator("tracker_endpoint")
+    def validate_tracker_endpoint(cls, tracker_endpoint: str):
+        url = Utils.validate_url(tracker_endpoint)
+        return url
 
 
 class IcxKeystore(BaseModel):
@@ -39,14 +49,19 @@ class SavedIcxAddress(BaseModel):
 
 
 class AppConfig(BaseModel):
-    custom_networks: Dict[IcxNetwork] = {}
+    custom_networks: Dict[str, IcxNetwork] = {}
     default_keystore: str = None
     default_network: str = "mainnet"
-    keystores: Dict[IcxKeystore] = {}
-    query_only: bool = False
-    saved_addresses: Dict[SavedIcxAddress] = {}
+    keystores: Dict[str, IcxKeystore] = {}
+    mode: str = "rw"
+    saved_addresses: Dict[str, SavedIcxAddress] = {}
 
     @validator("default_network")
-    def validate_network_name(cls, name: str):
+    def validate_network_name(cls, name: str) -> str:
         name = Utils.strip_all_whitespace(name, force_lowercase=True)
         return name
+
+    @validator("mode")
+    def validate_mode(cls, mode: str) -> str:
+        if mode in ["r", "rw"]:
+            return mode

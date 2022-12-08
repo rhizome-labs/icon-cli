@@ -25,7 +25,7 @@ class Config:
         "default_keystore": None,
         "default_network": "mainnet",
         "keystores": [],
-        "query_only": False,
+        "read_only": False,
         "saved_addresses": {},
     }
 
