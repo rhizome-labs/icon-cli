@@ -2,6 +2,7 @@ import io
 import json
 import os
 import shutil
+from functools import lru_cache
 from pathlib import Path, PosixPath
 
 import typer
@@ -80,6 +81,7 @@ class Config:
         default_network = config.default_network
         return default_network
 
+    @lru_cache(maxsize=1)
     @classmethod
     def read_config(cls) -> AppConfig:
         config = cls._read_config()

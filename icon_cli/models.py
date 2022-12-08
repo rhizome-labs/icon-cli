@@ -2,7 +2,6 @@ from pathlib import PosixPath
 from typing import Dict, List
 
 from pydantic import BaseModel, validator
-from yarl import URL
 
 from icon_cli.utils import Utils
 

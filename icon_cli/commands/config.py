@@ -12,6 +12,7 @@ def view() -> None:
     """
     Prints a dictionary representation of config.yml.
     """
+    # Read config.
     config = Config.read_config()
     pprint(config.dict(), expand_all=True)
 
@@ -45,7 +46,7 @@ def mode() -> None:
 
 
 @app.command()
-def set_network(network: str = typer.Argument(...)) -> None:
+def network(network: str = typer.Argument(...)) -> None:
     """
     Change the default network in config.yml
 
