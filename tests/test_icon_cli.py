@@ -1,4 +1,4 @@
-from icon_cli.dapps.cps import Cps
+from icon_cli.cps import Cps
 
 
 def test_cps_get_active_proposals():

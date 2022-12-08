@@ -1,52 +1,62 @@
-import logging
-import os
-
 import typer
-from dotenv import load_dotenv
-from rich import inspect
-from rich.logging import RichHandler
-
-load_dotenv()
 
 
-def die(message: str, level: str = None):
-    if level == "error":
-        fg = "red"
-        prefix = "ERROR: "
-    elif level == "warning":
-        fg = "orange"
-        prefix = "WARNING: "
-    else:
-        fg = None
-        prefix = None
-    typer.secho(f"{prefix}{message}", fg=fg)
-    raise typer.Exit()
+class Utils:
+    def __init__(self) -> None:
+        pass
 
+    @staticmethod
+    def die(message: str, level: str = None):
+        """
+        A function that formats and prints an error message before exiting the program.
+        """
+        # Set color and prefix for die message.
+        if level == "error":
+            fg = "red"
+            prefix = "ERROR: "
+        elif level == "warning":
+            fg = "orange"
+            prefix = "WARNING: "
+        else:
+            fg = None
+            prefix = None
 
-def format(value: int, exa: int, round: int = 0):
-    if round == 0:
-        return f"{value / 10**exa}"
-    else:
-        return f"{round(value / 10**exa, round)}"
+        # Print die message.
+        typer.secho(f"{prefix}{message}", fg=fg)
 
+        # Raise error and exit.
+        raise typer.Exit()
 
-def hex_to_int(input: str):
-    return int(input, 16)
+    @staticmethod
+    def strip_all_whitespace(input: str, force_lowercase: bool):
+        """
+        A function that strips all whitespace from a string.
+        """
+        input = input.strip()
+        input = input.replace(" ", "")
+        # Convert to lowercase if force_lowercase is True.
+        if force_lowercase is True:
+            input = input.casefold()
+        return input
 
+    ###################
+    # DATA VALIDATORS #
+    ###################
 
-def log(message):
-
-    if os.getenv("ENV") == "DEBUG":
-        log_level = "DEBUG"
-    else:
-        log_level = "INFO"
-
-    logging.basicConfig(
-        level=log_level, format="%(message)s", datefmt="[%X]", handlers=[RichHandler()]
-    )
-
-    log = logging.getLogger("rich")
-
-    if log_level == "DEBUG":
-        inspect(message)
-        log.debug(message)
+    @staticmethod
+    def validate_address(address: str) -> str:
+        try:
+            # Convert address to lowercase.
+            address = address.casefold()
+            # Validate ICX wallet address.
+            if len(address) == 42 and address.startswith("hx"):
+                return address
+            # Validate ICX contract address.
+            elif len(address) == 42 and address.startswith("cx"):
+                return address
+            else:
+                # Die if address is not validated successfully.
+                Utils.die(f"{address} is not a valid ICX wallet or contract address.", "error")  # fmt: skip
+        except:
+            # Die if address is not validated successfully.
+            Utils.die(f"{address} is not a valid ICX wallet or contract address.", "error")  # fmt: skip
