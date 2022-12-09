@@ -1,16 +1,26 @@
 # icon-cli
 
-icon-cli is a command line interface for interacting with the ICON blockchain network. At this time, icon-cli is in active development, so I don't recommend using it for production tasks for now.
-
-Contrary to popular belief, icon-cli is not a [T-Bears](https://github.com/icon-project/t-bears) clone, and has a wide array of unique features such as:
-
-- Querying general blockchain data.
-- Sending transactions, including bulk transactions.
-- Querying and voting on CPS proposals.
-- Balanced-related tools for liquidating, swapping, and managing loans.
-- Keystore management with built-in support for multiple identities.
-- And much, much more.
+icon-cli is a command line interface for interacting with the ICON blockchain network. At this time, icon-cli is in active development, so we don't recommend using it for mission-critical tasks for now.
 
 ## Commands
 
-TBD - Commands are still changing frequently, and will be documented following the initial feature freeze.
+### config
+
+* `icon config mode`: Change the icon-cli mode between query-only and query/tx modes.
+* `icon config network`: Change the default network in config.yml.
+* `icon config purge`: Empty icon-cli's internal trash bin.
+* `icon config view`: View the current config.yml file.
+* `icon config keystore add`: Import an existing keystore into icon-cli.
+* `icon config keystore list`: List all imported keystores.
+* `icon config keystore set`: Set the default keystore for interacting with the ICON blockchain.
+
+### query
+
+* `icon query abi`: View the ABI of a SCORE on the ICON blockchain.
+* `icon query block`: View information about an ICON block.
+* `icon query tx`: View information about an ICX transaction.
+* `icon query tx-result`: View information about the result of an ICX transaction.
+
+### tx
+
+* `icon tx send`: Send an ICX transaction.
