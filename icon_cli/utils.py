@@ -49,7 +49,7 @@ class Utils:
     @classmethod
     def abs_path(cls, relative_path: str) -> Path:
         """
-        A function that converts a relative path to absolute path.
+        A function that converts a relative path to an absolute path.
         """
         return os.path.abspath(relative_path)
 
