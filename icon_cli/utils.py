@@ -63,3 +63,7 @@ class Utils:
         if force_lowercase is True:
             input = input.casefold()
         return input
+
+    @classmethod
+    def to_int(cls, value: str):
+        return int(value, 16)

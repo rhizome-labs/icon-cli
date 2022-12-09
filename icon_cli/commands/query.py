@@ -1,11 +1,8 @@
-from typing import Union
-
 import typer
 from rich import print
 
 from icon_cli.config import Config
 from icon_cli.icx import Icx
-from icon_cli.utils import Utils
 
 app = typer.Typer()
 from icon_cli.validators import Validators
@@ -22,6 +19,22 @@ def abi(
     icx = Icx(network)
     abi = icx.get_score_api(contract_address)
     print(abi)
+
+
+@app.command()
+def balance(
+    address: str = typer.Argument(...),
+    network: str = Config.get_default_network(),
+    in_loop: bool = False,
+    token_symbol: str = typer.Option(None, "--token", "-t"),
+):
+    icx = Icx(network)
+    if token_symbol is None:
+        balance = icx.get_balance(address, in_loop=in_loop)
+        print(f"{balance} ICX")
+    else:
+        balance = icx.get_token_balance(address, token_symbol, network)
+        print(balance)
 
 
 @app.command()

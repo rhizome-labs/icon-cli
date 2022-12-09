@@ -1,3 +1,4 @@
+from decimal import Decimal
 from functools import lru_cache
 from getpass import getpass
 from typing import Tuple
@@ -15,6 +16,7 @@ from iconsdk.wallet.wallet import KeyWallet
 
 from icon_cli import DEFAULT_NETWORKS, EXA, KEYSTORE_DIR
 from icon_cli.config import Config
+from icon_cli.tokens import Tokens
 from icon_cli.utils import Utils
 
 
@@ -53,6 +55,17 @@ class Icx(Config):
     # Built-In Query Methods #
     ##########################
 
+    def get_balance(
+        self,
+        address: str,
+        in_loop: bool = False,
+    ) -> int | Decimal:
+        balance = self.icon_service.get_balance(address)
+        if in_loop is True:
+            return balance
+        else:
+            return Decimal(balance) / EXA
+
     def get_block(
         self,
         block_height: int = -1,
@@ -82,6 +95,22 @@ class Icx(Config):
         """
         result = self.icon_service.get_score_api(contract_address, block_height)
         return result
+
+    def get_token_balance(
+        self,
+        address: str,
+        token_symbol: str,
+        network: str,
+        in_loop: bool = False,
+    ) -> int | Decimal:
+        token = Tokens.get_token(token_symbol).dict()
+        params = {"_owner": address}
+        result = self.call(token[network], "balanceOf", params)
+        token_balance = Utils.to_int(result)
+        if in_loop is True:
+            return token_balance
+        else:
+            return Decimal(token_balance) / EXA
 
     def get_transaction(
         self,
