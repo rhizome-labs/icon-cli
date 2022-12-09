@@ -8,13 +8,14 @@ from icon_cli.icx import Icx
 from icon_cli.utils import Utils
 
 app = typer.Typer()
+from icon_cli.validators import Validators
 
 
 @app.command()
 def abi(
     contract_address: str = typer.Argument(
         ...,
-        callback=Utils.validate_address,
+        callback=Validators.validate_address,
     ),
     network: str = Config.get_config_default_network(),
 ):

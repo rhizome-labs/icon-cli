@@ -4,6 +4,7 @@ from typing import Dict, List
 from pydantic import BaseModel, validator
 
 from icon_cli.utils import Utils
+from icon_cli.validators import Validators
 
 
 class IcxNetwork(BaseModel):
@@ -19,12 +20,12 @@ class IcxNetwork(BaseModel):
 
     @validator("api_endpoint")
     def validate_api_endpoint(cls, api_endpoint: str):
-        url = Utils.validate_url(api_endpoint)
+        url = Validators.validate_url(api_endpoint)
         return url
 
     @validator("tracker_endpoint")
     def validate_tracker_endpoint(cls, tracker_endpoint: str):
-        url = Utils.validate_url(tracker_endpoint)
+        url = Validators.validate_url(tracker_endpoint)
         return url
 
 
@@ -33,7 +34,7 @@ class SavedIcxAddress(BaseModel):
 
     @validator("address")
     def validate_address(cls, address: str) -> str:
-        address = Utils.validate_address(address)
+        address = Validators.validate_address(address)
         return address
 
 

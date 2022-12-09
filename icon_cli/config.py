@@ -2,12 +2,11 @@ import io
 import json
 import os
 import shutil
-from pathlib import Path, PosixPath
+from pathlib import Path
 
 import yaml
 
 from icon_cli.models import AppConfig, IcxNetwork
-from icon_cli.utils import Utils
 
 
 class Config:
@@ -54,7 +53,7 @@ class Config:
         pass
 
     @classmethod
-    def initialize_config(cls, validate_config_file: bool = True) -> None:
+    def initialize(cls, validate_config_file: bool = True) -> None:
         """
         An initialization function that ensures required directories and config file exists.
         """
@@ -100,21 +99,36 @@ class Config:
     ####################
 
     @classmethod
-    def read_keystore(cls, keystore_path: PosixPath) -> tuple:
-        # Open keystore file.
-        with io.open(keystore_path, "r", encoding="utf-8-sig") as keystore_file:
-            keystore_data = json.load(keystore_file)
-        # Validate JSON scheme of keystore.
-        Utils.validate_keystore(keystore_data)
-        return keystore_data
-
-    @classmethod
-    def get_imported_keystores(cls) -> list:
+    def get_imported_keystore_filenames(cls) -> list:
         files_in_keystore_dir = os.listdir(cls.KEYSTORE_DIR)
         if len(files_in_keystore_dir) == 0:
             return []
         else:
             return files_in_keystore_dir
+
+    @classmethod
+    def get_imported_keystore_nicknames(cls) -> list:
+        files_in_keystore_dir = os.listdir(cls.KEYSTORE_DIR)
+        if len(files_in_keystore_dir) == 0:
+            return []
+        else:
+            return [
+                os.path.splitext(keystore_filename)[0]
+                for keystore_filename in files_in_keystore_dir
+            ]
+
+    @classmethod
+    def get_keystore_public_key(cls, keystore_filename: Path) -> str:
+        keystore_data = cls.read_keystore(f"{cls.KEYSTORE_DIR}/{keystore_filename}")
+        public_key = keystore_data["address"]
+        return public_key
+
+    @classmethod
+    def read_keystore(cls, keystore_path: Path) -> tuple:
+        # Open keystore file.
+        with io.open(keystore_path, "r", encoding="utf-8-sig") as keystore_file:
+            keystore_data = json.load(keystore_file)
+        return keystore_data
 
     ####################
     # INTERNAL METHODS #
@@ -132,9 +146,9 @@ class Config:
         shutil.copyfile(source, destination)
 
     @staticmethod
-    def _create_directory(path: PosixPath) -> None:
+    def _create_directory(path: Path) -> None:
         os.mkdir(path)
 
     @staticmethod
-    def _delete_file(path: PosixPath) -> None:
+    def _delete_file(path: Path) -> None:
         os.remove(path)

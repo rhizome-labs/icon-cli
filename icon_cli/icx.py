@@ -2,9 +2,14 @@ import getpass
 from functools import lru_cache
 
 from iconsdk.builder.call_builder import CallBuilder
-from iconsdk.exception import KeyStoreException
+from iconsdk.builder.transaction_builder import (
+    CallTransactionBuilder,
+    TransactionBuilder,
+)
+from iconsdk.exception import JSONRPCException, KeyStoreException
 from iconsdk.icon_service import IconService
 from iconsdk.providers.http_provider import HTTPProvider
+from iconsdk.signed_transaction import SignedTransaction
 from iconsdk.wallet.wallet import KeyWallet
 
 from icon_cli.config import Config
@@ -36,20 +41,18 @@ class Icx(Config):
     # Wallet Methods #
     ##################
 
-    def load_wallet(self, keystore: str):
+    def load_wallet(self, keystore_name: str) -> KeyWallet:
         try:
-            keystore_metadata = Config.get_keystore_metadata(keystore)
-            keystore_filename = keystore_metadata["keystore_filename"]
             wallet_password = getpass("Keystore Password: ")
             wallet = KeyWallet.load(
-                f"{Config.keystore_dir}/{keystore_filename}",
+                f"{Config.KEYSTORE_DIR}/{keystore_name}.json",
                 wallet_password,
             )
             return wallet
         except KeyStoreException:
             Utils.exit("The password you supplied is incorrect.", "error")
         except Exception as e:
-            Utils.exit(e, "error")
+            Utils.exit("The keystore could not be loaded.", "error")
 
     ##########################
     # Built-In Query Methods #
@@ -154,3 +157,23 @@ class Icx(Config):
         nid = _network.nid
         icon_service = IconService(HTTPProvider(api_endpoint, self.API_VERSION))
         return icon_service, nid
+
+    ########################
+    # TRANSACTION BUILDERS #
+    ########################
+
+    def build_transaction(
+        self,
+        to: str,
+        value: int,
+        wallet: KeyWallet,
+    ):
+        transaction = (
+            TransactionBuilder()
+            .from_(self.wallet.get_address())
+            .to(to)
+            .value(int(value))
+            .nid(self.network_id)
+            .build()
+        )
+        return transaction
