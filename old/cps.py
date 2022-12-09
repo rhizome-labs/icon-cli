@@ -8,7 +8,7 @@ class Cps(Icx):
         super().__init__(network)
 
         if network != "mainnet":
-            die("This command only supports mainnet at this time.", "error")
+            exit("This command only supports mainnet at this time.", "error")
 
     ##############################
     # PROPOSALS/PROGRESS REPORTS #
@@ -134,6 +134,19 @@ class Cps(Icx):
         for validator in validators:
             validator["delegated"] = int(validator["delegated"], 16)
         return validators
+
+    ############
+    # SPONSORS #
+    ############
+    def check_claimable_sponsor_bond(self, address: str):
+        result = self.call(
+            Contracts.get_contract_from_name("cps", self.network),
+            "check_claimable_sponsor_bond",
+            {"_address": address},
+        )
+        result["ICX"] = hex_to_int(result["ICX"]) / 10**18
+        result["bnUSD"] = hex_to_int(result["bnUSD"]) / 10**18
+        return result
 
     ############
     # TREASURY #

@@ -9,7 +9,7 @@ class Balanced(Icx):
         super().__init__(network)
 
         if network != "mainnet":
-            die("This command only supports mainnet at this time.", "error")
+            exit("This command only supports mainnet at this time.", "error")
 
     ##########################
     # BALANCED PEG STABILITY #
@@ -25,4 +25,3 @@ class Balanced(Icx):
         #    value,
         #    Tokens.get_token_precision_from_contract(contract),
         # )
- 

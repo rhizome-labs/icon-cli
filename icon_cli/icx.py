@@ -1,21 +1,14 @@
-from getpass import getpass
-from random import randint
+import getpass
+from functools import lru_cache
 
-import requests
-import typer
 from iconsdk.builder.call_builder import CallBuilder
-from iconsdk.builder.transaction_builder import (
-    CallTransactionBuilder,
-    TransactionBuilder,
-)
 from iconsdk.exception import KeyStoreException
 from iconsdk.icon_service import IconService
 from iconsdk.providers.http_provider import HTTPProvider
-from iconsdk.signed_transaction import SignedTransaction
 from iconsdk.wallet.wallet import KeyWallet
 
 from icon_cli.config import Config
-from icon_cli.utils import die
+from icon_cli.utils import Utils
 
 
 class Icx(Config):
@@ -26,129 +19,138 @@ class Icx(Config):
         super().__init__()
 
         self.network = network
-        self.icon_service, self.nid = self._get_icon_service()
+        self.icon_service, self.nid = self._get_icon_service_and_nid(self.network)
 
-    def call(self, to, method, params=None):
-        call = CallBuilder().to(to).method(method).params(params).build()
+    def call(
+        self,
+        to: str,
+        method: str,
+        params: dict = {},
+        height: int = None,
+    ):
+        call = CallBuilder().to(to).method(method).params(params).height(height).build()
         result = self.icon_service.call(call)
         return result
 
-    def get_balance(self, address: str):
-        result = self.icon_service.get_balance(address)
-        return result
+    ##################
+    # Wallet Methods #
+    ##################
 
-    def get_contract_abi(self, contract: str):
-        url = f"{self._get_tracker_endpoint()}/api/v1/contracts/{contract}"
-        r = requests.get(url)
-        data = r.json()
-        abi = data["abi"]
-        return abi
-
-    def get_token_balance(self, address: str, contract: str):
-        result = self.call(contract, "balanceOf", {"_owner": address})
-        return int(result, 16)
-
-    ##########################
-    # TRANSACTION PRIMITIVES #
-    ##########################
-
-    def build_transaction(self, wallet, to, value):
-        transaction = (
-            TransactionBuilder()
-            .from_(wallet.get_address())
-            .to(to)
-            .value(value)
-            .nid(self.nid)
-            .nonce(self._generate_nonce())
-            .build()
-        )
-        return transaction
-
-    def build_call_transaction(
-        self, wallet, to, value: int = 0, method: str = None, params: dict = None
-    ):
-        transaction = (
-            CallTransactionBuilder()
-            .from_(wallet.get_address())
-            .to(to)
-            .value(value)
-            .nid(self.nid)
-            .nonce(self._generate_nonce())
-            .method(method)
-            .params(params)
-            .build()
-        )
-        return transaction
-
-    def send_transaction(self, wallet, transaction):
-        try:
-            step_limit = self.icon_service.estimate_step(transaction) + 100000
-            signed_transaction = SignedTransaction(transaction, wallet, int(step_limit))
-            tx_hash = self.icon_service.send_transaction(signed_transaction)
-            return tx_hash
-        except Exception as e:
-            die(e, "error")
-
-    def _get_icon_service(self):
-        try:
-            network = self.default_networks[self.network]
-            api_endpoint = network["api_endpoint"]
-            nid = network["nid"]
-            return (
-                IconService(HTTPProvider(api_endpoint, self.API_VERSION)),
-                nid,
-            )
-        except KeyError:
-            print(f"ERROR: {network} is not a supported network.")
-            raise typer.Exit()
-
-    def _get_tracker_endpoint(self):
-        network = self.default_networks[self.network]
-        tracker_endpoint = network["tracker_endpoint"]
-        return tracker_endpoint
-
-    #########################
-    # TRANSACTION FUNCTIONS #
-    #########################
-
-    def transfer_token(
-        self,
-        wallet,
-        to_address: str,
-        token_contract: str,
-        value: float,
-        token_precision: int,
-    ):
-        params = {"_to": to_address, "_value": value * 10**token_precision}
-        transaction = self.build_call_transaction(
-            wallet, token_contract, 0, "transfer", params
-        )
-        tx_hash = self.send_transaction(transaction)
-        return tx_hash
-
-    ####################
-    # WALLET FUNCTIONS #
-    ####################
-
-    @classmethod
-    def load_wallet(cls, keystore: str):
+    def load_wallet(self, keystore: str):
         try:
             keystore_metadata = Config.get_keystore_metadata(keystore)
             keystore_filename = keystore_metadata["keystore_filename"]
             wallet_password = getpass("Keystore Password: ")
             wallet = KeyWallet.load(
-                f"{Config.keystore_dir}/{keystore_filename}", wallet_password
+                f"{Config.keystore_dir}/{keystore_filename}",
+                wallet_password,
             )
             return wallet
         except KeyStoreException:
-            die("The password you supplied is incorrect.", "error")
+            Utils.exit("The password you supplied is incorrect.", "error")
         except Exception as e:
-            die(e, "error")
+            Utils.exit(e, "error")
 
-    ##############################
-    # INTERNAL UTILITY FUNCTIONS #
-    ##############################
+    ##########################
+    # Built-In Query Methods #
+    ##########################
 
-    def _generate_nonce(self, length=6):
-        nonce = int("".join([str(randint(0, 9)) for i in range(length)]))  # noqa 503
-        return nonce
+    def get_block(
+        self,
+        block_height: int = -1,
+    ) -> dict:
+        """
+        Returns information about a specific block on the ICON blockchain.
+
+        Args:
+            block_height: The block height to query.
+        """
+        if block_height == -1:
+            block_height = "latest"
+        result = self.icon_service.get_block(block_height)
+        return result
+
+    def get_score_api(
+        self,
+        contract_address: str,
+        block_height: int = None,
+    ) -> dict:
+        """
+        Returns the ABI for a SCORE on the ICON blockchain.
+
+        Args:
+            contract_address: The contract to get the ABI for.
+            block_height: The block height to query.
+        """
+        result = self.icon_service.get_score_api(contract_address, block_height)
+        return result
+
+    def get_transaction(
+        self,
+        tx_hash: str,
+    ) -> dict:
+        """
+        Returns details of a transaction on the ICON blockchain.
+
+        Args:
+            tx_hash: An ICX transaction hash.
+        """
+        result = self.icon_service.get_transaction(tx_hash)
+        return result
+
+    def get_transaction_result(
+        self,
+        tx_hash: str,
+    ) -> dict:
+        """
+        Returns the result of a transaction on the ICON blockchain.
+
+        Args:
+            tx_hash: An ICX transaction hash.
+        """
+        result = self.icon_service.get_transaction_result(tx_hash)
+        return result
+
+    def create_keystore():
+        wallet = wallet
+
+    ######################
+    # Common Query Calls #
+    ######################
+
+    @lru_cache(maxsize=128)
+    def get_icx_usd_price(self, block_height: int = None) -> float:
+        """
+        Returns a quote for ICX/USD from the Band oracle.
+
+        Args:
+            block_height: The block height to query.
+        """
+        params = {"_symbol": "ICX"}
+        result = self.call(
+            "cx087b4164a87fdfb7b714f3bafe9dfb050fd6b132",
+            "get_ref_data",
+            params,
+            height=block_height,
+        )
+        icx_usd_price = int(result["rate"], 16) / 1_000_000_000
+        return icx_usd_price
+
+    @lru_cache(maxsize=1)
+    def _get_icon_service_and_nid(
+        self,
+        network,
+    ):
+        """
+        Parses configuration and returns an IconService object and ICON network ID.
+
+        Args:
+            network: Name of the network (e.g. "mainnet").
+        """
+        # Get IcxNetwork object with network details.
+        _network = self.DEFAULT_NETWORKS[network]
+        # Get API endpoint and network ID from IcxNetwork object.
+        api_endpoint = _network.api_endpoint
+        nid = _network.nid
+        icon_service = IconService(HTTPProvider(api_endpoint, self.API_VERSION))
+        return icon_service, nid

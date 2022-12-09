@@ -18,7 +18,7 @@ class Validators(Config):
     @classmethod
     def validate_address(cls, address: str):
         if address[:2] != "hx" or len(address) != 42:
-            die(f"{address} is not a valid ICX address.", "error")
+            exit(f"{address} is not a valid ICX address.", "error")
         return address
 
     @classmethod
@@ -26,7 +26,7 @@ class Validators(Config):
         config = Config.inspect_config()
         saved_addresses = config["saved_addresses"]
         if name not in saved_addresses:
-            die(f"{name} does not exist in the address book.", "error")
+            exit(f"{name} does not exist in the address book.", "error")
         return name
 
     @classmethod
@@ -34,14 +34,14 @@ class Validators(Config):
         if contract is None:
             return contract
         elif contract[:2] != "cx" or len(contract) != 42:
-            die(f"{contract} is not a valid ICX contract address.", "error")
+            exit(f"{contract} is not a valid ICX contract address.", "error")
         return contract
 
     @staticmethod
     def validate_keystore_file(keystore_path: PosixPath):
         valid_keystore_sizes = (509, 512)
         if keystore_path.stat().st_size not in valid_keystore_sizes:
-            die(f"This keystore file is not valid.", "error")
+            exit(f"This keystore file is not valid.", "error")
         return keystore_path
 
     @classmethod
@@ -51,7 +51,7 @@ class Validators(Config):
     @classmethod
     def validate_network(cls, network: str):
         if network not in cls.default_networks.keys():
-            die(f"{network} is not a valid network.", "error")
+            exit(f"{network} is not a valid network.", "error")
         return network
 
     @classmethod
@@ -65,14 +65,14 @@ class Validators(Config):
                 token_contract = Tokens.get_contract_from_ticker(token.upper())
                 return token_contract
             except KeyError:
-                die(f"{token} is not a supported token.", "error")
+                exit(f"{token} is not a supported token.", "error")
 
     @classmethod
     def validate_transaction_value(cls, value: str):
         try:
             return float(value)
         except ValueError:
-            die(f"{value} is not a valid transaction value.", "error")
+            exit(f"{value} is not a valid transaction value.", "error")
 
     @classmethod
     def validate_uppercase_only(cls, input: str):
@@ -82,7 +82,7 @@ class Validators(Config):
     def validate_token_ticker(cls, ticker):
         valid_tokens = Tokens.TOKENS.keys()
         if ticker not in valid_tokens:
-            die(f"{ticker} is not supported at this time.", "error")
+            exit(f"{ticker} is not supported at this time.", "error")
         return ticker.upper()
 
     @classmethod
@@ -100,6 +100,6 @@ class Validators(Config):
             )
             return wallet
         except KeyStoreException:
-            die("The password you supplied is incorrect.", "error")
+            exit("The password you supplied is incorrect.", "error")
         except Exception as e:
-            die(e, "error")
+            exit(e, "error")
