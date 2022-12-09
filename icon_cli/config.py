@@ -72,7 +72,13 @@ class Config:
         return
 
     @classmethod
-    def get_config_default_network(cls) -> str:
+    def get_default_keystore(cls) -> str:
+        config = cls._read_config()
+        default_keystore = config.default_keystore
+        return default_keystore
+
+    @classmethod
+    def get_default_network(cls) -> str:
         config = cls._read_config()
         default_network = config.default_network
         return default_network

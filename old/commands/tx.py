@@ -1,4 +1,5 @@
 import typer
+
 from icon_cli.commands.subcommands.tx import balanced, cps
 from icon_cli.config import Config
 from icon_cli.icx import Icx

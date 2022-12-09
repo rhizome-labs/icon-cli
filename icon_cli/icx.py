@@ -1,5 +1,5 @@
-import getpass
 from functools import lru_cache
+from getpass import getpass
 
 from iconsdk.builder.call_builder import CallBuilder
 from iconsdk.builder.transaction_builder import (
@@ -41,7 +41,8 @@ class Icx(Config):
     # Wallet Methods #
     ##################
 
-    def load_wallet(self, keystore_name: str) -> KeyWallet:
+    @classmethod
+    def load_keystore(cls, keystore_name: str) -> KeyWallet:
         try:
             wallet_password = getpass("Keystore Password: ")
             wallet = KeyWallet.load(
@@ -51,8 +52,6 @@ class Icx(Config):
             return wallet
         except KeyStoreException:
             Utils.exit("The password you supplied is incorrect.", "error")
-        except Exception as e:
-            Utils.exit("The keystore could not be loaded.", "error")
 
     ##########################
     # Built-In Query Methods #
@@ -114,9 +113,6 @@ class Icx(Config):
         result = self.icon_service.get_transaction_result(tx_hash)
         return result
 
-    def create_keystore():
-        wallet = wallet
-
     ######################
     # Common Query Calls #
     ######################
@@ -168,12 +164,17 @@ class Icx(Config):
         value: int,
         wallet: KeyWallet,
     ):
-        transaction = (
+        tx = (
             TransactionBuilder()
-            .from_(self.wallet.get_address())
+            .from_(wallet.get_address())
             .to(to)
             .value(int(value))
-            .nid(self.network_id)
+            .nid(self.nid)
             .build()
         )
-        return transaction
+        return tx
+
+    def send_transaction(self, tx, wallet):
+        signed_tx = SignedTransaction(tx, wallet, 100_000_000)
+        tx_hash = self.icon_service.send_transaction(signed_tx)
+        return tx_hash

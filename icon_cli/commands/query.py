@@ -17,7 +17,7 @@ def abi(
         ...,
         callback=Validators.validate_address,
     ),
-    network: str = Config.get_config_default_network(),
+    network: str = Config.get_default_network(),
 ):
     icx = Icx(network)
     abi = icx.get_score_api(contract_address)
@@ -27,7 +27,7 @@ def abi(
 @app.command()
 def block(
     block_height: int = typer.Argument(-1),
-    network: str = Config.get_config_default_network(),
+    network: str = Config.get_default_network(),
 ):
     icx = Icx(network)
     block = icx.get_block(block_height)
@@ -37,7 +37,7 @@ def block(
 @app.command()
 def tx(
     tx_hash: str = typer.Argument(...),
-    network: str = Config.get_config_default_network(),
+    network: str = Config.get_default_network(),
 ):
     icx = Icx(network)
     tx = icx.get_transaction(tx_hash)
@@ -47,7 +47,7 @@ def tx(
 @app.command()
 def tx_result(
     tx_hash: str = typer.Argument(...),
-    network: str = Config.get_config_default_network(),
+    network: str = Config.get_default_network(),
 ):
     icx = Icx(network)
     tx_result = icx.get_transaction_result(tx_hash)

@@ -101,6 +101,18 @@ class Validators:
             Utils.exit(f"ICX keystore is not valid.", "error")
 
     @staticmethod
+    def validate_network(network: str) -> str:
+        if network not in [
+            "mainnet",
+            "lisbon",
+            "berlin",
+            "sejong",
+            "localhost",
+        ]:
+            Utils.exit(f"{network} is not a valid network.", "error")
+        return network
+
+    @staticmethod
     def validate_tx_hash(tx_hash: str) -> str:
         """
         Returns an ICX transaction hash if validation passes.
