@@ -47,9 +47,9 @@ class Icx(Config):
             )
             return wallet
         except KeyStoreException:
-            Utils.die("The password you supplied is incorrect.", "error")
+            Utils.exit("The password you supplied is incorrect.", "error")
         except Exception as e:
-            Utils.die(e, "error")
+            Utils.exit(e, "error")
 
     ##########################
     # Built-In Query Methods #

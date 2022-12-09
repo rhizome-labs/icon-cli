@@ -1,6 +1,7 @@
 import io
 import json
-from pathlib import PosixPath
+import os
+from pathlib import Path, PosixPath
 
 import jsonschema
 import typer
@@ -46,7 +47,14 @@ class Utils:
         pass
 
     @classmethod
-    def die(cls, message: str, level: str = None):
+    def abs_path(cls, relative_path: str) -> Path:
+        """
+        A function that converts a relative path to absolute path.
+        """
+        return os.path.abspath(relative_path)
+
+    @classmethod
+    def exit(cls, message: str, level: str = None):
         """
         A function that formats and prints an error message before exiting the program.
         """
@@ -57,6 +65,12 @@ class Utils:
         elif level == "warning":
             fg = "orange"
             prefix = "WARNING: "
+        elif level == "ok":
+            fg = "green"
+            prefix = "OK: "
+        elif level == "success":
+            fg = "green"
+            prefix = "SUCCESS: "
         else:
             fg = None
             prefix = None
@@ -64,7 +78,7 @@ class Utils:
         # Print die message.
         typer.secho(f"{prefix}{message}", fg=fg)
 
-        # Raise error and exit.
+        # Exit application.
         raise typer.Exit()
 
     @classmethod
@@ -102,10 +116,10 @@ class Utils:
                 return address
             else:
                 # Die if address is not validated successfully.
-                Utils.die(f"{address} is not a valid ICX wallet or contract address.", "error")  # fmt: skip
+                Utils.exit(f"{address} is not a valid ICX wallet or contract address.", "error")  # fmt: skip
         except:
             # Die if address is not validated successfully.
-            Utils.die(f"{address} is not a valid ICX wallet or contract address.", "error")  # fmt: skip
+            Utils.exit(f"{address} is not a valid ICX wallet or contract address.", "error")  # fmt: skip
 
     @classmethod
     def validate_keystore_file(cls, keystore_path: PosixPath):
@@ -116,7 +130,7 @@ class Utils:
             return keystore_path
         except:
             # Die if address is not validated successfully.
-            Utils.die(f"{keystore_path} is not a valid ICX keystore file.", "error")
+            Utils.exit(f"{keystore_path} is not a valid ICX keystore file.", "error")
 
     @classmethod
     def validate_keystore_schema(cls, keystore_data: dict) -> dict:
@@ -132,7 +146,7 @@ class Utils:
             return keystore_data
         except:
             # Die if address is not validated successfully.
-            Utils.die(f"ICX keystore is not valid.", "error")
+            Utils.exit(f"ICX keystore is not valid.", "error")
 
     @classmethod
     def validate_tx_hash(cls, tx_hash: str) -> str:
@@ -149,7 +163,7 @@ class Utils:
             return tx_hash
         else:
             # Die if address is not validated successfully.
-            Utils.die(f"{tx_hash} is not a valid ICX transaction hash.", "error")  # fmt: skip
+            Utils.exit(f"{tx_hash} is not a valid ICX transaction hash.", "error")  # fmt: skip
 
     @classmethod
     def validate_url(cls, url: str) -> str:
@@ -157,4 +171,4 @@ class Utils:
             URL(url)
             return url
         except:
-            Utils.die(f"{url} is not a valid HTTP URL.", "error")
+            Utils.exit(f"{url} is not a valid HTTP URL.", "error")

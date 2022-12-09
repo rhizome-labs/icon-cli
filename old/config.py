@@ -115,7 +115,7 @@ class Config:
         if len(keystore_config) > 0:
             for imported_keystore in keystore_config:
                 if keystore_address == imported_keystore["keystore_address"]:
-                    die(
+                    exit(
                         f"An imported keystore ({imported_keystore['keystore_name']}) with the address {keystore_address} already exists.",
                         "error",
                     )
@@ -126,7 +126,7 @@ class Config:
         if len(keystore_config) > 0:
             for imported_keystore in keystore_config:
                 if keystore_name == imported_keystore["keystore_name"]:
-                    die(
+                    exit(
                         f"An imported keystore named {keystore_name} already exists.",
                         "error",
                     )
@@ -246,7 +246,7 @@ class Config:
     @classmethod
     def _write_config(cls, key: str, value: str):
         if not isinstance(value, str):
-            die("Only string values are supported.", "error")
+            exit("Only string values are supported.", "error")
         if key in cls._list_config_keys():
             with open(
                 cls.config_file, "r+", encoding="utf-8"
@@ -257,4 +257,4 @@ class Config:
                 yaml.dump(config, config_file, sort_keys=True)
                 config_file.truncate()
         else:
-            die(f"{key} is not a valid configuration key.", "error")
+            exit(f"{key} is not a valid configuration key.", "error")

@@ -1,4 +1,4 @@
-from pathlib import PosixPath
+from pathlib import Path
 from typing import Dict, List
 
 from pydantic import BaseModel, validator
@@ -41,7 +41,6 @@ class AppConfig(BaseModel):
     custom_networks: Dict[str, IcxNetwork] = {}
     default_keystore: str = None
     default_network: str = "mainnet"
-    keystores: List[str] = []
     mode: str = "rw"
     saved_addresses: Dict[str, SavedIcxAddress] = {}
 

@@ -87,7 +87,7 @@ class Icx(Config):
             tx_hash = self.icon_service.send_transaction(signed_transaction)
             return tx_hash
         except Exception as e:
-            die(e, "error")
+            exit(e, "error")
 
     def _get_icon_service(self):
         try:
@@ -141,9 +141,9 @@ class Icx(Config):
             )
             return wallet
         except KeyStoreException:
-            die("The password you supplied is incorrect.", "error")
+            exit("The password you supplied is incorrect.", "error")
         except Exception as e:
-            die(e, "error")
+            exit(e, "error")
 
     ##############################
     # INTERNAL UTILITY FUNCTIONS #

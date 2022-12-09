@@ -52,7 +52,7 @@ def vote(
             vote = vote.lower()
 
         if vote not in ["approve", "abstain", "reject", "skip"]:
-            die(f"{vote} is not a valid option. Valid options are APPROVE, ABSTAIN, REJECT, or SKIP.")  # fmt: skip
+            exit(f"{vote} is not a valid option. Valid options are APPROVE, ABSTAIN, REJECT, or SKIP.")  # fmt: skip
         if vote != "skip":
             reason = f"<p>{typer.prompt('Please provide a reason for your vote')}</p>"
             tx_hash = _cps.vote_proposal(
@@ -83,7 +83,7 @@ def vote(
             vote = vote.lower()
 
         if vote not in ["approve", "reject", "skip"]:
-            die(f"{vote} is not a valid option. Valid options are APPROVE, REJECT, or SKIP.")  # fmt: skip
+            exit(f"{vote} is not a valid option. Valid options are APPROVE, REJECT, or SKIP.")  # fmt: skip
         if vote != "skip":
             reason = f"<p>{typer.prompt('Please provide a reason for your vote')}</p>"
             tx_hash = _cps.vote_progress_report(

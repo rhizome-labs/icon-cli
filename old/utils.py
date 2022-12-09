@@ -9,7 +9,7 @@ from rich.logging import RichHandler
 load_dotenv()
 
 
-def die(message: str, level: str = None):
+def exit(message: str, level: str = None):
     if level == "error":
         fg = "red"
         prefix = "ERROR: "

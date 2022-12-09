@@ -17,8 +17,9 @@ class Config:
     DATA_DIR = f"{CONFIG_DIR}/data"
     KEYSTORE_DIR = f"{CONFIG_DIR}/keystore"
     HISTORY_DIR = f"{CONFIG_DIR}/history"
+    TRASH_DIR = f"{CONFIG_DIR}/.trash"
 
-    REQUIRED_DIRS = [CONFIG_DIR, DATA_DIR, HISTORY_DIR, KEYSTORE_DIR]
+    REQUIRED_DIRS = [CONFIG_DIR, DATA_DIR, HISTORY_DIR, KEYSTORE_DIR, TRASH_DIR]
 
     DEFAULT_CONFIG = AppConfig()
 
@@ -99,28 +100,21 @@ class Config:
     ####################
 
     @classmethod
-    def import_keystore(
-        cls,
-        keystore_path: PosixPath,
-        keystore_name: str,
-    ) -> None:
-        """
-        Imports an ICX keystore.
-
-        Args:
-            keystore_path: The file path to the keystore JSON file to import.
-        """
-        print(keystore_path, keystore_name)
-        # keystore_data = cls._read_keystore(keystore_path)
-
-    @classmethod
-    def _read_keystore(cls, keystore_path: PosixPath) -> tuple:
+    def read_keystore(cls, keystore_path: PosixPath) -> tuple:
         # Open keystore file.
         with io.open(keystore_path, "r", encoding="utf-8-sig") as keystore_file:
             keystore_data = json.load(keystore_file)
         # Validate JSON scheme of keystore.
         Utils.validate_keystore(keystore_data)
         return keystore_data
+
+    @classmethod
+    def get_imported_keystores(cls) -> list:
+        files_in_keystore_dir = os.listdir(cls.KEYSTORE_DIR)
+        if len(files_in_keystore_dir) == 0:
+            return []
+        else:
+            return files_in_keystore_dir
 
     ####################
     # INTERNAL METHODS #
