@@ -1,13 +1,52 @@
+import io
+import json
+from pathlib import PosixPath
+
+import jsonschema
 import typer
 from yarl import URL
 
 
 class Utils:
+
+    ICX_KEYSTORE_JSON_SCHEMA = {
+        "type": "object",
+        "properties": {
+            "version": {"type": "integer"},
+            "id": {"type": "string"},
+            "address": {"type": "string"},
+            "crypto": {
+                "type": "object",
+                "properties": {
+                    "ciphertext": {"type": "string"},
+                    "cipherparams": {
+                        "type": "object",
+                        "properties": {"iv": {"type": "string"}},
+                    },
+                    "cipher": {"type": "string"},
+                    "kdf": {"type": "string"},
+                    "kdfparams": {
+                        "type": "object",
+                        "properties": {
+                            "dklen": {"type": "integer"},
+                            "salt": {"type": "string"},
+                            "n": {"type": "integer"},
+                            "r": {"type": "integer"},
+                            "p": {"type": "integer"},
+                        },
+                    },
+                    "mac": {"type": "string"},
+                },
+            },
+            "coinType": {"type": "string"},
+        },
+    }
+
     def __init__(self) -> None:
         pass
 
-    @staticmethod
-    def die(message: str, level: str = None):
+    @classmethod
+    def die(cls, message: str, level: str = None):
         """
         A function that formats and prints an error message before exiting the program.
         """
@@ -28,8 +67,8 @@ class Utils:
         # Raise error and exit.
         raise typer.Exit()
 
-    @staticmethod
-    def strip_all_whitespace(input: str, force_lowercase: bool):
+    @classmethod
+    def strip_all_whitespace(cls, input: str, force_lowercase: bool):
         """
         A function that strips all whitespace from a string.
         """
@@ -44,8 +83,8 @@ class Utils:
     # DATA VALIDATORS #
     ###################
 
-    @staticmethod
-    def validate_address(address: str) -> str:
+    @classmethod
+    def validate_address(cls, address: str) -> str:
         """
         Returns an ICX wallet or contract address if validation passes.
 
@@ -68,8 +107,35 @@ class Utils:
             # Die if address is not validated successfully.
             Utils.die(f"{address} is not a valid ICX wallet or contract address.", "error")  # fmt: skip
 
-    @staticmethod
-    def validate_tx_hash(tx_hash: str) -> str:
+    @classmethod
+    def validate_keystore_file(cls, keystore_path: PosixPath):
+        with io.open(keystore_path, "r", encoding="utf-8-sig") as keystore_file:
+            keystore_data = json.load(keystore_file)
+        try:
+            jsonschema.validate(keystore_data, cls.ICX_KEYSTORE_JSON_SCHEMA)
+            return keystore_path
+        except:
+            # Die if address is not validated successfully.
+            Utils.die(f"{keystore_path} is not a valid ICX keystore file.", "error")
+
+    @classmethod
+    def validate_keystore_schema(cls, keystore_data: dict) -> dict:
+        """
+        Returns the path of a keystore file if validation passes.
+
+        Args:
+            keystore_path: File path to an ICX keystore file.
+        """
+
+        try:
+            jsonschema.validate(keystore_data, cls.ICX_KEYSTORE_JSON_SCHEMA)
+            return keystore_data
+        except:
+            # Die if address is not validated successfully.
+            Utils.die(f"ICX keystore is not valid.", "error")
+
+    @classmethod
+    def validate_tx_hash(cls, tx_hash: str) -> str:
         """
         Returns an ICX transaction hash if validation passes.
 
@@ -85,8 +151,8 @@ class Utils:
             # Die if address is not validated successfully.
             Utils.die(f"{tx_hash} is not a valid ICX transaction hash.", "error")  # fmt: skip
 
-    @staticmethod
-    def validate_url(url: str) -> str:
+    @classmethod
+    def validate_url(cls, url: str) -> str:
         try:
             URL(url)
             return url

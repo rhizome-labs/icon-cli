@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import typer
 from rich import print
 
@@ -8,13 +10,22 @@ app = typer.Typer()
 
 
 @app.command()
-def view() -> None:
-    """
-    Prints a dictionary representation of config.yml.
-    """
-    # Read config.
-    config = Config.read_config()
-    print(config.dict())
+def import_keystore(
+    keystore_path: Path = typer.Argument(
+        ...,
+        exists=True,
+        file_okay=True,
+        readable=True,
+        resolve_path=True,
+        callback=Utils.validate_keystore_file,
+    )
+) -> None:
+    # Prompt user for a keystore name.
+    keystore_name = typer.prompt("Please specify a nickname for this keystore")  # fmt: skip
+    keystore_name = keystore_name.casefold()
+
+    # Import keystore file.
+    Config.import_keystore(keystore_path, keystore_name)
 
 
 @app.command()
@@ -64,3 +75,13 @@ def network(network: str = typer.Argument(...)) -> None:
     # Write config to disk.
     Config.write_config(config)
     print(f"SUCCESS: Default network has been set to {network}.")
+
+
+@app.command()
+def view() -> None:
+    """
+    Prints a dictionary representation of config.yml.
+    """
+    # Read config.
+    config = Config.read_config()
+    print(config.dict())

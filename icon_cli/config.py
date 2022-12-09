@@ -7,6 +7,7 @@ from pathlib import Path, PosixPath
 import yaml
 
 from icon_cli.models import AppConfig, IcxNetwork
+from icon_cli.utils import Utils
 
 
 class Config:
@@ -98,22 +99,28 @@ class Config:
     ####################
 
     @classmethod
-    def import_keystore(cls, keystore_path: PosixPath) -> None:
+    def import_keystore(
+        cls,
+        keystore_path: PosixPath,
+        keystore_name: str,
+    ) -> None:
         """
         Imports an ICX keystore.
 
         Args:
             keystore_path: The file path to the keystore JSON file to import.
         """
-        # Get keystore metadata, and calculate hash.
-        keystore = cls._read_keystore(keystore_path)
-        keystore_address = keystore["address"]
+        print(keystore_path, keystore_name)
+        # keystore_data = cls._read_keystore(keystore_path)
 
     @classmethod
     def _read_keystore(cls, keystore_path: PosixPath) -> tuple:
+        # Open keystore file.
         with io.open(keystore_path, "r", encoding="utf-8-sig") as keystore_file:
-            keystore = json.load(keystore_file)
-            return keystore
+            keystore_data = json.load(keystore_file)
+        # Validate JSON scheme of keystore.
+        Utils.validate_keystore(keystore_data)
+        return keystore_data
 
     ####################
     # INTERNAL METHODS #
