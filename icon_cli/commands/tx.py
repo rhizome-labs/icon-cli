@@ -31,8 +31,7 @@ def send(
         "-p",
     ),
 ):
-    keystore = Icx.load_keystore(keystore_name, keystore_password)
-    icx = Icx(network)
-    tx = icx.build_transaction(to, amount, keystore)
-    tx_hash = icx.send_transaction(tx, keystore)
+    icx = Icx(network, keystore_name, keystore_password)
+    tx = icx.build_transaction(to, amount)
+    tx_hash = icx.send_transaction(tx)
     print(tx_hash)
