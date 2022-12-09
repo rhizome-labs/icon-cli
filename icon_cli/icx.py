@@ -1,12 +1,18 @@
-import getpass
 from functools import lru_cache
+from getpass import getpass
 
 from iconsdk.builder.call_builder import CallBuilder
-from iconsdk.exception import KeyStoreException
+from iconsdk.builder.transaction_builder import (
+    CallTransactionBuilder,
+    TransactionBuilder,
+)
+from iconsdk.exception import JSONRPCException, KeyStoreException
 from iconsdk.icon_service import IconService
 from iconsdk.providers.http_provider import HTTPProvider
+from iconsdk.signed_transaction import SignedTransaction, Transaction
 from iconsdk.wallet.wallet import KeyWallet
 
+from icon_cli import DEFAULT_NETWORKS, EXA, KEYSTORE_DIR
 from icon_cli.config import Config
 from icon_cli.utils import Utils
 
@@ -17,7 +23,6 @@ class Icx(Config):
 
     def __init__(self, network) -> None:
         super().__init__()
-
         self.network = network
         self.icon_service, self.nid = self._get_icon_service_and_nid(self.network)
 
@@ -27,7 +32,7 @@ class Icx(Config):
         method: str,
         params: dict = {},
         height: int = None,
-    ):
+    ) -> dict:
         call = CallBuilder().to(to).method(method).params(params).height(height).build()
         result = self.icon_service.call(call)
         return result
@@ -36,20 +41,22 @@ class Icx(Config):
     # Wallet Methods #
     ##################
 
-    def load_wallet(self, keystore: str):
+    @classmethod
+    def load_keystore(
+        cls,
+        keystore_name: str,
+        keystore_password: str = None,
+    ) -> KeyWallet:
         try:
-            keystore_metadata = Config.get_keystore_metadata(keystore)
-            keystore_filename = keystore_metadata["keystore_filename"]
-            wallet_password = getpass("Keystore Password: ")
-            wallet = KeyWallet.load(
-                f"{Config.keystore_dir}/{keystore_filename}",
-                wallet_password,
+            if keystore_password is None:
+                keystore_password = getpass("Keystore Password: ")
+            keystore = KeyWallet.load(
+                f"{KEYSTORE_DIR}/{keystore_name}.json",
+                keystore_password,
             )
-            return wallet
+            return keystore
         except KeyStoreException:
             Utils.exit("The password you supplied is incorrect.", "error")
-        except Exception as e:
-            Utils.exit(e, "error")
 
     ##########################
     # Built-In Query Methods #
@@ -111,15 +118,15 @@ class Icx(Config):
         result = self.icon_service.get_transaction_result(tx_hash)
         return result
 
-    def create_keystore():
-        wallet = wallet
-
     ######################
     # Common Query Calls #
     ######################
 
     @lru_cache(maxsize=128)
-    def get_icx_usd_price(self, block_height: int = None) -> float:
+    def get_icx_usd_price(
+        self,
+        block_height: int = None,
+    ) -> float:
         """
         Returns a quote for ICX/USD from the Band oracle.
 
@@ -140,7 +147,7 @@ class Icx(Config):
     def _get_icon_service_and_nid(
         self,
         network,
-    ):
+    ) -> tuple:
         """
         Parses configuration and returns an IconService object and ICON network ID.
 
@@ -148,9 +155,34 @@ class Icx(Config):
             network: Name of the network (e.g. "mainnet").
         """
         # Get IcxNetwork object with network details.
-        _network = self.DEFAULT_NETWORKS[network]
+        _network = DEFAULT_NETWORKS[network]
         # Get API endpoint and network ID from IcxNetwork object.
         api_endpoint = _network.api_endpoint
         nid = _network.nid
         icon_service = IconService(HTTPProvider(api_endpoint, self.API_VERSION))
         return icon_service, nid
+
+    ########################
+    # TRANSACTION BUILDERS #
+    ########################
+
+    def build_transaction(
+        self,
+        to: str,
+        value: int,
+        wallet: KeyWallet,
+    ) -> Transaction:
+        tx = (
+            TransactionBuilder()
+            .from_(wallet.get_address())
+            .to(to)
+            .value(int(value * EXA))
+            .nid(self.nid)
+            .build()
+        )
+        return tx
+
+    def send_transaction(self, tx, wallet) -> str:
+        signed_tx = SignedTransaction(tx, wallet, 100_000_000)
+        tx_hash = self.icon_service.send_transaction(signed_tx)
+        return tx_hash
