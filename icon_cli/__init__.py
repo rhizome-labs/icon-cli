@@ -5,6 +5,8 @@ import yaml
 
 from icon_cli.models import AppConfig, IcxNetwork
 
+EXA = 10**18
+
 CONFIG_DIR = f"{Path.home()}/.icon-cli"
 CONFIG_FILE = f"{CONFIG_DIR}/config.yml"
 DATA_DIR = f"{CONFIG_DIR}/data"
@@ -40,6 +42,39 @@ DEFAULT_NETWORKS = {
         nid=83,
         tracker_endpoint="https://sejong.tracker.solidwallet.io",
     ),
+}
+
+ICX_KEYSTORE_JSON_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "version": {"type": "integer"},
+        "id": {"type": "string"},
+        "address": {"type": "string"},
+        "crypto": {
+            "type": "object",
+            "properties": {
+                "ciphertext": {"type": "string"},
+                "cipherparams": {
+                    "type": "object",
+                    "properties": {"iv": {"type": "string"}},
+                },
+                "cipher": {"type": "string"},
+                "kdf": {"type": "string"},
+                "kdfparams": {
+                    "type": "object",
+                    "properties": {
+                        "dklen": {"type": "integer"},
+                        "salt": {"type": "string"},
+                        "n": {"type": "integer"},
+                        "r": {"type": "integer"},
+                        "p": {"type": "integer"},
+                    },
+                },
+                "mac": {"type": "string"},
+            },
+        },
+        "coinType": {"type": "string"},
+    },
 }
 
 

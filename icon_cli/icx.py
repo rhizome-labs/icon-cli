@@ -9,10 +9,10 @@ from iconsdk.builder.transaction_builder import (
 from iconsdk.exception import JSONRPCException, KeyStoreException
 from iconsdk.icon_service import IconService
 from iconsdk.providers.http_provider import HTTPProvider
-from iconsdk.signed_transaction import SignedTransaction
+from iconsdk.signed_transaction import SignedTransaction, Transaction
 from iconsdk.wallet.wallet import KeyWallet
 
-from icon_cli import DEFAULT_NETWORKS
+from icon_cli import DEFAULT_NETWORKS, EXA, KEYSTORE_DIR
 from icon_cli.config import Config
 from icon_cli.utils import Utils
 
@@ -23,7 +23,6 @@ class Icx(Config):
 
     def __init__(self, network) -> None:
         super().__init__()
-
         self.network = network
         self.icon_service, self.nid = self._get_icon_service_and_nid(self.network)
 
@@ -33,7 +32,7 @@ class Icx(Config):
         method: str,
         params: dict = {},
         height: int = None,
-    ):
+    ) -> dict:
         call = CallBuilder().to(to).method(method).params(params).height(height).build()
         result = self.icon_service.call(call)
         return result
@@ -43,14 +42,19 @@ class Icx(Config):
     ##################
 
     @classmethod
-    def load_keystore(cls, keystore_name: str) -> KeyWallet:
+    def load_keystore(
+        cls,
+        keystore_name: str,
+        keystore_password: str = None,
+    ) -> KeyWallet:
         try:
-            wallet_password = getpass("Keystore Password: ")
-            wallet = KeyWallet.load(
-                f"{Config.KEYSTORE_DIR}/{keystore_name}.json",
-                wallet_password,
+            if keystore_password is None:
+                keystore_password = getpass("Keystore Password: ")
+            keystore = KeyWallet.load(
+                f"{KEYSTORE_DIR}/{keystore_name}.json",
+                keystore_password,
             )
-            return wallet
+            return keystore
         except KeyStoreException:
             Utils.exit("The password you supplied is incorrect.", "error")
 
@@ -119,7 +123,10 @@ class Icx(Config):
     ######################
 
     @lru_cache(maxsize=128)
-    def get_icx_usd_price(self, block_height: int = None) -> float:
+    def get_icx_usd_price(
+        self,
+        block_height: int = None,
+    ) -> float:
         """
         Returns a quote for ICX/USD from the Band oracle.
 
@@ -140,7 +147,7 @@ class Icx(Config):
     def _get_icon_service_and_nid(
         self,
         network,
-    ):
+    ) -> tuple:
         """
         Parses configuration and returns an IconService object and ICON network ID.
 
@@ -164,18 +171,18 @@ class Icx(Config):
         to: str,
         value: int,
         wallet: KeyWallet,
-    ):
+    ) -> Transaction:
         tx = (
             TransactionBuilder()
             .from_(wallet.get_address())
             .to(to)
-            .value(int(value))
+            .value(int(value * EXA))
             .nid(self.nid)
             .build()
         )
         return tx
 
-    def send_transaction(self, tx, wallet):
+    def send_transaction(self, tx, wallet) -> str:
         signed_tx = SignedTransaction(tx, wallet, 100_000_000)
         tx_hash = self.icon_service.send_transaction(signed_tx)
         return tx_hash

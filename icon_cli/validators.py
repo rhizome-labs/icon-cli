@@ -1,44 +1,13 @@
 import io
 import json
+import os
 from pathlib import Path
 
 import jsonschema
 from yarl import URL
 
+from icon_cli import ICX_KEYSTORE_JSON_SCHEMA, KEYSTORE_DIR
 from icon_cli.utils import Utils
-
-ICX_KEYSTORE_JSON_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "version": {"type": "integer"},
-        "id": {"type": "string"},
-        "address": {"type": "string"},
-        "crypto": {
-            "type": "object",
-            "properties": {
-                "ciphertext": {"type": "string"},
-                "cipherparams": {
-                    "type": "object",
-                    "properties": {"iv": {"type": "string"}},
-                },
-                "cipher": {"type": "string"},
-                "kdf": {"type": "string"},
-                "kdfparams": {
-                    "type": "object",
-                    "properties": {
-                        "dklen": {"type": "integer"},
-                        "salt": {"type": "string"},
-                        "n": {"type": "integer"},
-                        "r": {"type": "integer"},
-                        "p": {"type": "integer"},
-                    },
-                },
-                "mac": {"type": "string"},
-            },
-        },
-        "coinType": {"type": "string"},
-    },
-}
 
 
 class Validators:
@@ -79,6 +48,19 @@ class Validators:
         except:
             # Die if address is not validated successfully.
             Utils.exit(f"{keystore_path} is not a valid ICX keystore file.", "error")
+
+    @staticmethod
+    def validate_keystore_name(keystore_name: str) -> str:
+        """
+        Returns the keystore name if its corresponding JSON file exists.
+
+        Args:
+            keystore_name: The name of the keystore to validate.
+        """
+        imported_keystores = os.listdir(KEYSTORE_DIR)
+        if f"{keystore_name}.json" not in imported_keystores:
+            Utils.exit(f"{keystore_name} is not a valid ICX keystore name.", "error")
+        return keystore_name
 
     @staticmethod
     def validate_keystore_schema(keystore_data: dict) -> dict:

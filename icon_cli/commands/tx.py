@@ -20,12 +20,18 @@ def send(
         "-n",
         callback=Validators.validate_network,
     ),
-    keystore: str = typer.Option(
+    keystore_name: str = typer.Option(
         Config.get_default_keystore(),
         "--keystore",
         "-k",
     ),
+    keystore_password: str = typer.Option(
+        None,
+        "--password",
+        "-p",
+    ),
 ):
+    keystore = Icx.load_keystore(keystore_name, keystore_password)
     icx = Icx(network)
     tx = icx.build_transaction(to, amount, keystore)
     tx_hash = icx.send_transaction(tx, keystore)
