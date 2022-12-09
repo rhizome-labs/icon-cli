@@ -24,7 +24,6 @@ def send(
         Config.get_default_keystore(),
         "--keystore",
         "-k",
-        callback=Icx.load_keystore,
     ),
 ):
     icx = Icx(network)

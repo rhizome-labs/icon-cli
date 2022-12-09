@@ -1,12 +1,9 @@
-import io
 import json
 import os
 from pathlib import Path
 
-import jsonschema
 import typer
 from rich import print
-from yarl import URL
 
 
 class Utils:

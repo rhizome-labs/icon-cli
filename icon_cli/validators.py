@@ -81,10 +81,6 @@ class Validators:
             Utils.exit(f"{keystore_path} is not a valid ICX keystore file.", "error")
 
     @staticmethod
-    def validate_keystore_name(keystore_name: str) -> str:
-        return
-
-    @staticmethod
     def validate_keystore_schema(keystore_data: dict) -> dict:
         """
         Returns the path of a keystore file if validation passes.

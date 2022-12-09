@@ -12,6 +12,7 @@ from iconsdk.providers.http_provider import HTTPProvider
 from iconsdk.signed_transaction import SignedTransaction
 from iconsdk.wallet.wallet import KeyWallet
 
+from icon_cli import DEFAULT_NETWORKS
 from icon_cli.config import Config
 from icon_cli.utils import Utils
 
@@ -147,7 +148,7 @@ class Icx(Config):
             network: Name of the network (e.g. "mainnet").
         """
         # Get IcxNetwork object with network details.
-        _network = self.DEFAULT_NETWORKS[network]
+        _network = DEFAULT_NETWORKS[network]
         # Get API endpoint and network ID from IcxNetwork object.
         api_endpoint = _network.api_endpoint
         nid = _network.nid
