@@ -213,7 +213,7 @@ class Icx(Config):
             .from_(self.wallet_address)
             .to(to)
             .value(int(value))
-            .nid(self.network_id)
+            .nid(self.nid)
             .method(method)
             .params(params)
             .build()

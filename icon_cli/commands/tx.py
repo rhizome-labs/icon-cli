@@ -1,7 +1,7 @@
 import json
 
 import typer
-from rich import print
+from rich import inspect, print
 
 from icon_cli.config import Config
 from icon_cli.icx import Icx
@@ -105,27 +105,28 @@ def call(
     print(json.dumps(method_to_call_abi, indent=4))
     print("\n")
 
-    # {
-    #   "_baseToken": "",
-    #   "_quoteToken": "",
-    #   "_baseValue": "",
-    #   "_quoteValue": "",
-    # }
-
+    # Initialize dictionary to hold params for transaction.
     params = {}
+
+    # Loop through inputs that require params.
     for param in method_to_call_abi["inputs"]:
         param_name = param["name"]
         param_type = param["type"]
 
+        # Ask user to provide a value for the param.
         param_value = typer.prompt(f"Provide a value for {param_name} ({param_type})")
 
+        # Do some type checking.
         if param_type == "Address":
             Validators.validate_address(param_value)
         elif param_type == "bool":
             param_value = bool(param_value)
         elif param_type == "int":
             param_value = int(param_value)
+        elif param_type == "str":
+            param_value = str(param_value)
 
+        # Add param to the `params` dictionary.
         params[param_name] = param_value
 
     # Build transaction.
@@ -136,6 +137,11 @@ def call(
         params,
     )
 
-    # Send transaction.
-    tx_hash = icx.send_transaction(tx)
-    print(tx_hash)
+    # Confirm transaction.
+    inspect(tx)
+    tx_confirmation = typer.confirm("Please confirm the transaction details")
+
+    if tx_confirmation:
+        # Send transaction.
+        tx_hash = icx.send_transaction(tx)
+        print(tx_hash)
