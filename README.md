@@ -22,4 +22,5 @@ icon-cli is a command line interface for interacting with the ICON blockchain ne
 
 ### tx
 
+* `icon tx call`: Interact with a SCORE on the ICON blockchain.
 * `icon tx send`: Send an ICX transaction.
