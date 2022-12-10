@@ -98,5 +98,9 @@ def list():
 
 @app.command()
 def set(keystore_name: str):
+    """
+    Set the default keystore for icon-cli.
+    """
     imported_keystore_nicknames = Config.get_imported_keystore_nicknames()
-    print(imported_keystore_nicknames)
+    if keystore_name not in keystore_name:
+        Utils.exit(f"{keystore_name} is not an imported keystore.")
