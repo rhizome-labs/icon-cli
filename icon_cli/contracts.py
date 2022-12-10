@@ -32,3 +32,7 @@ class Contracts:
     @classmethod
     def get_contract_from_name(cls, name: str):
         return cls.KNOWN_CONTRACTS[name]
+
+    @classmethod
+    def get_known_contract_names(cls):
+        return cls.KNOWN_CONTRACTS.keys()

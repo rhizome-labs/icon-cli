@@ -101,6 +101,14 @@ def set(keystore_name: str):
     """
     Set the default keystore for icon-cli.
     """
+    # Get imported keystores.
     imported_keystore_nicknames = Config.get_imported_keystore_nicknames()
-    if keystore_name not in keystore_name:
+
+    # Exit if keystore name doesn't correspond to an imported keystore.
+    if keystore_name not in imported_keystore_nicknames:
         Utils.exit(f"{keystore_name} is not an imported keystore.")
+
+    config = Config.read_config()
+    config.default_keystore = keystore_name
+    Config.write_config(config)
+    Utils.exit(f"Default keystore has been set to {keystore_name}.", "success")

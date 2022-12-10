@@ -37,9 +37,17 @@ class Validators:
             Utils.exit(f"{address} is not a valid ICX address.", "error")  # fmt: skip
 
     @staticmethod
-    def validate_contract_address(address: str, network: str) -> str:
-        known_contracts = Contracts.KNOWN_CONTRACTS
-        return address
+    def validate_contract_address(address: str) -> str:
+        try:
+            address = address.casefold()
+            if len(address) == 42 and address.startswith("cx"):
+                return address
+            elif address in Contracts.get_known_contract_names():
+                return address
+            else:
+                raise ValueError
+        except:
+            Utils.exit(f"{address} is not a valid contract address.", "error")  # fmt: skip
 
     @staticmethod
     def validate_keystore_file(keystore_path: Path) -> Path:
