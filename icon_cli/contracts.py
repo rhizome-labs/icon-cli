@@ -1,4 +1,7 @@
+import typer
+
 from icon_cli.models import IcxContract
+from icon_cli.utils import Utils
 
 
 class Contracts:
@@ -31,7 +34,16 @@ class Contracts:
 
     @classmethod
     def get_contract_from_name(cls, name: str):
-        return cls.KNOWN_CONTRACTS[name]
+        try:
+            return cls.KNOWN_CONTRACTS[name]
+        except KeyError:
+            raise typer.Exit()
+
+    @classmethod
+    def get_contract_address_from_name(cls, name: str, network: str):
+        contract = cls.KNOWN_CONTRACTS[name]
+        contract_address = getattr(contract, network)
+        return contract_address
 
     @classmethod
     def get_known_contract_names(cls):

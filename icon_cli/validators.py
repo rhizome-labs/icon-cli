@@ -42,6 +42,8 @@ class Validators:
             address = address.casefold()
             if len(address) == 42 and address.startswith("cx"):
                 return address
+            # Check if input is a known contract name.
+            # This does not check the network because it's not known at this time.
             elif address in Contracts.get_known_contract_names():
                 return address
             else:

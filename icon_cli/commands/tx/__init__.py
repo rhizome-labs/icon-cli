@@ -5,6 +5,7 @@ from rich import inspect, print
 
 from icon_cli import CONFIG
 from icon_cli.config import Config
+from icon_cli.contracts import Contracts
 from icon_cli.icx import IcxTx
 from icon_cli.utils import Utils
 from icon_cli.validators import Validators
@@ -46,7 +47,7 @@ def send(
 def call(
     contract_address: str = typer.Argument(
         ...,
-        callback=Validators.validate_address,
+        callback=Validators.validate_contract_address,
     ),
     value: float = typer.Argument(0),
     network: str = typer.Option(
@@ -66,7 +67,16 @@ def call(
         "-p",
     ),
 ):
+    # If contract address doesn't start with "cx", check if it's a known contract.
+    if not contract_address.startswith("cx"):
+        contract_address = Contracts.get_contract_address_from_name(
+            contract_address, network
+        )
+
+    # Initialize IcxTx object.
     icx = IcxTx(network, keystore_name, keystore_password)
+
+    # Load ABI for the contract.
     abi = icx.get_score_api(contract_address)
 
     # Create a dictionary that maps method name to its ABI.
