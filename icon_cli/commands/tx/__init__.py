@@ -5,7 +5,7 @@ from rich import inspect, print
 
 from icon_cli import CONFIG
 from icon_cli.config import Config
-from icon_cli.icx import Icx
+from icon_cli.icx import IcxTx
 from icon_cli.utils import Utils
 from icon_cli.validators import Validators
 
@@ -36,7 +36,7 @@ def send(
         "-p",
     ),
 ):
-    icx = Icx(network, keystore_name, keystore_password)
+    icx = IcxTx(network, keystore_name, keystore_password)
     tx = icx.build_transaction(to_address, value)
     tx_hash = icx.send_transaction(tx)
     print(tx_hash)
@@ -66,7 +66,7 @@ def call(
         "-p",
     ),
 ):
-    icx = Icx(network, keystore_name, keystore_password)
+    icx = IcxTx(network, keystore_name, keystore_password)
     abi = icx.get_score_api(contract_address)
 
     # Create a dictionary that maps method name to its ABI.

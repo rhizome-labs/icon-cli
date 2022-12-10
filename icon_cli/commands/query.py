@@ -2,7 +2,7 @@ import typer
 from rich import print
 
 from icon_cli.config import Config
-from icon_cli.icx import Icx
+from icon_cli.icx import IcxQuery
 
 app = typer.Typer()
 from icon_cli.validators import Validators
@@ -12,7 +12,7 @@ from icon_cli.validators import Validators
 def abi(
     contract_address: str = typer.Argument(
         ...,
-        callback=Validators.validate_address,
+        callback=Validators.validate_contract_address,
         help="An ICON contract address.",
         show_default=False,
     ),
@@ -23,7 +23,7 @@ def abi(
         help="The name of the ICON network to use.",
     ),
 ):
-    icx = Icx(network)
+    icx = IcxQuery(network)
     abi = icx.get_score_api(contract_address)
     print(abi)
 
@@ -51,7 +51,7 @@ def balance(
         None, "--token", "-t", help="An IRC-2 token symbol."
     ),
 ):
-    icx = Icx(network)
+    icx = IcxQuery(network)
     if token_symbol is None:
         balance = icx.get_balance(address, in_loop=in_loop)
         print(f"{balance} ICX")
@@ -73,7 +73,7 @@ def block(
         help="The name of the ICON network to use.",
     ),
 ):
-    icx = Icx(network)
+    icx = IcxQuery(network)
     block = icx.get_block(block_height)
     print(block)
 
@@ -91,7 +91,7 @@ def tx(
         help="The name of the ICON network to use.",
     ),
 ):
-    icx = Icx(network)
+    icx = IcxQuery(network)
     tx = icx.get_transaction(tx_hash)
     print(tx)
 
@@ -109,6 +109,6 @@ def tx_result(
         help="The name of the ICON network to use.",
     ),
 ):
-    icx = Icx(network)
+    icx = IcxQuery(network)
     tx_result = icx.get_transaction_result(tx_hash)
     print(tx_result)

@@ -37,6 +37,11 @@ class Validators:
             Utils.exit(f"{address} is not a valid ICX address.", "error")  # fmt: skip
 
     @staticmethod
+    def validate_contract_address(address: str, network: str) -> str:
+        known_contracts = Contracts.KNOWN_CONTRACTS
+        return address
+
+    @staticmethod
     def validate_keystore_file(keystore_path: Path) -> Path:
         with io.open(keystore_path, "r", encoding="utf-8-sig") as keystore_file:
             keystore_data = json.load(keystore_file)
