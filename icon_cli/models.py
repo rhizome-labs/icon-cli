@@ -20,28 +20,34 @@ class IcxNetwork(BaseModel):
         return name
 
 
+class IcxContract(BaseModel):
+    name: str
+    mainnet: str = None
+    lisbon: str = None
+    berlin: str = None
+    sejong: str = None
+    localhost: str = None
+
+
 class IcxToken(BaseModel):
     symbol: str
     decimals: int = None
     mainnet: str = None
-    testnet: str = None
+    lisbon: str = None
+    berlin: str = None
+    sejong: str = None
+    localhost: str = None
 
 
 class AppConfig(BaseModel):
     custom_networks: Dict[str, IcxNetwork] = {}
     default_keystore: str = None
     default_network: str = "mainnet"
-    mode: str = "rw"
     saved_addresses: Dict[str, str] = {}
 
     class Config:
         anystr_strip_whitespace = True
         anystr_lower = True
-
-    @validator("mode")
-    def validate_mode(cls, mode: str) -> str:
-        if mode in ["r", "rw"]:
-            return mode
 
     @validator("default_network")
     def validate_default_network(cls, name):

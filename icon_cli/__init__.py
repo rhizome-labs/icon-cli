@@ -94,7 +94,10 @@ def initialize() -> None:
         with open(CONFIG_FILE, "w+", encoding="utf-8") as f:
             yaml.safe_dump(DEFAULT_CONFIG.dict(), f)
 
-    return
+    with open(CONFIG_FILE, "r") as f:
+        config = yaml.safe_load(f)
+
+    return AppConfig(**config)
 
 
-initialize()
+CONFIG = initialize()

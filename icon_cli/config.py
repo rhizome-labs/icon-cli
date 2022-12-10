@@ -21,6 +21,12 @@ class Config:
         return default_keystore
 
     @classmethod
+    def get_default_keystore_address(cls) -> str:
+        default_keystore = cls.get_default_keystore()
+        address = cls.get_keystore_public_key(f"{default_keystore}.json")
+        return address
+
+    @classmethod
     def get_default_network(cls) -> str:
         config = cls._read_config()
         default_network = config.default_network

@@ -7,6 +7,7 @@ import jsonschema
 from yarl import URL
 
 from icon_cli import ICX_KEYSTORE_JSON_SCHEMA, KEYSTORE_DIR
+from icon_cli.contracts import Contracts
 from icon_cli.utils import Utils
 
 
@@ -26,17 +27,29 @@ class Validators:
             # Convert address to lowercase.
             address = address.casefold()
             # Validate ICX wallet address.
-            if len(address) == 42 and address.startswith("hx"):
-                return address
-            # Validate ICX contract address.
-            elif len(address) == 42 and address.startswith("cx"):
+            if len(address) == 42 and address[:2] in ("cx", "hx"):
                 return address
             else:
                 # Die if address is not validated successfully.
-                Utils.exit(f"{address} is not a valid ICX wallet or contract address.", "error")  # fmt: skip
+                raise ValueError
         except:
             # Die if address is not validated successfully.
-            Utils.exit(f"{address} is not a valid ICX wallet or contract address.", "error")  # fmt: skip
+            Utils.exit(f"{address} is not a valid ICX address.", "error")  # fmt: skip
+
+    @staticmethod
+    def validate_contract_address(address: str) -> str:
+        try:
+            address = address.casefold()
+            if len(address) == 42 and address.startswith("cx"):
+                return address
+            # Check if input is a known contract name.
+            # This does not check the network because it's not known at this time.
+            elif address in Contracts.get_known_contract_names():
+                return address
+            else:
+                raise ValueError
+        except:
+            Utils.exit(f"{address} is not a valid contract address.", "error")  # fmt: skip
 
     @staticmethod
     def validate_keystore_file(keystore_path: Path) -> Path:

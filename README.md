@@ -6,7 +6,6 @@ icon-cli is a command line interface for interacting with the ICON blockchain ne
 
 ### config
 
-* `icon config mode`: Change the icon-cli mode between query-only and query/tx modes.
 * `icon config network`: Change the default network in config.yml.
 * `icon config purge`: Empty icon-cli's internal trash bin.
 * `icon config view`: View the current config.yml file.
@@ -23,4 +22,5 @@ icon-cli is a command line interface for interacting with the ICON blockchain ne
 
 ### tx
 
+* `icon tx call`: Interact with a SCORE on the ICON blockchain.
 * `icon tx send`: Send an ICX transaction.

@@ -21,24 +21,32 @@ from icon_cli.utils import Utils
 
 
 class Icx(Config):
-
-    API_VERSION = 3
-
-    def __init__(
-        self,
-        network,
-        keystore_name: str = None,
-        keystore_password: str = None,
-    ) -> None:
+    def __init__(self, network: str) -> None:
         super().__init__()
+
         self.network = network
         self.icon_service, self.nid = self._get_icon_service_and_nid(self.network)
 
-        if keystore_name is not None:
-            self.keystore_name = keystore_name
-            self.keystore_password = keystore_password
-            self.wallet = self._load_keystore(self.keystore_name, self.keystore_password)  # fmt: skip
-            self.wallet_address = self.wallet.get_address()
+    @lru_cache(maxsize=1)
+    def _get_icon_service_and_nid(self, network) -> Tuple[IconService, int]:
+        """
+        Parses configuration and returns an IconService object and ICON network ID.
+
+        Args:
+            network: Name of the network (e.g. "mainnet").
+        """
+        # Get IcxNetwork object with network details.
+        _network = DEFAULT_NETWORKS[network]
+        # Get API endpoint and network ID from IcxNetwork object.
+        api_endpoint = _network.api_endpoint
+        nid = _network.nid
+        icon_service = IconService(HTTPProvider(api_endpoint, 3))
+        return icon_service, nid
+
+
+class IcxQuery(Icx):
+    def __init__(self, network: str) -> None:
+        super().__init__(network)
 
     def call(
         self,
@@ -163,24 +171,38 @@ class Icx(Config):
         icx_usd_price = int(result["rate"], 16) / 1_000_000_000
         return icx_usd_price
 
-    @lru_cache(maxsize=1)
-    def _get_icon_service_and_nid(
-        self,
-        network,
-    ) -> Tuple[IconService, int]:
-        """
-        Parses configuration and returns an IconService object and ICON network ID.
 
-        Args:
-            network: Name of the network (e.g. "mainnet").
-        """
-        # Get IcxNetwork object with network details.
-        _network = DEFAULT_NETWORKS[network]
-        # Get API endpoint and network ID from IcxNetwork object.
-        api_endpoint = _network.api_endpoint
-        nid = _network.nid
-        icon_service = IconService(HTTPProvider(api_endpoint, self.API_VERSION))
-        return icon_service, nid
+class IcxTx(IcxQuery):
+    def __init__(
+        self,
+        network: str,
+        keystore_name: str,
+        keystore_password: str,
+    ) -> None:
+        super().__init__(network)
+
+        self.keystore_name = keystore_name
+        self.keystore_password = keystore_password
+        self.wallet = self._load_keystore(self.keystore_name, self.keystore_password)  # fmt: skip
+        self.wallet_address = self.wallet.get_address()
+
+    def _load_keystore(
+        self,
+        keystore_name: str,
+        keystore_password: str,
+    ) -> KeyWallet:
+        try:
+            # Prompt user for keystore password if it's not provided.
+            if keystore_password is None:
+                keystore_password = getpass("Keystore Password: ")
+            # Load keystore.
+            keystore = KeyWallet.load(
+                f"{KEYSTORE_DIR}/{keystore_name}.json",
+                keystore_password,
+            )
+            return keystore
+        except KeyStoreException:
+            Utils.exit("The password you supplied is incorrect.", "error")
 
     ########################
     # TRANSACTION BUILDERS #
@@ -213,7 +235,7 @@ class Icx(Config):
             .from_(self.wallet_address)
             .to(to)
             .value(int(value))
-            .nid(self.network_id)
+            .nid(self.nid)
             .method(method)
             .params(params)
             .build()
@@ -228,25 +250,3 @@ class Icx(Config):
     def is_transaction_successful(self, tx_hash: str) -> bool:
         tx_result = self.icon_service.get_transaction_result(tx_hash)
         return
-
-    ##################
-    # Wallet Methods #
-    ##################
-
-    def _load_keystore(
-        self,
-        keystore_name: str,
-        keystore_password: str,
-    ) -> KeyWallet:
-        try:
-            # Prompt user for keystore password if it's not provided.
-            if keystore_password is None:
-                keystore_password = getpass("Keystore Password: ")
-            # Load keystore.
-            keystore = KeyWallet.load(
-                f"{KEYSTORE_DIR}/{keystore_name}.json",
-                keystore_password,
-            )
-            return keystore
-        except KeyStoreException:
-            Utils.exit("The password you supplied is incorrect.", "error")
