@@ -20,11 +20,23 @@ class IcxNetwork(BaseModel):
         return name
 
 
+class IcxContract(BaseModel):
+    name: str
+    mainnet: str = None
+    lisbon: str = None
+    berlin: str = None
+    sejong: str = None
+    localhost: str = None
+
+
 class IcxToken(BaseModel):
     symbol: str
     decimals: int = None
     mainnet: str = None
-    testnet: str = None
+    lisbon: str = None
+    berlin: str = None
+    sejong: str = None
+    localhost: str = None
 
 
 class AppConfig(BaseModel):
