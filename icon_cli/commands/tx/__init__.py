@@ -3,6 +3,7 @@ import json
 import typer
 from rich import inspect, print
 
+from icon_cli import CONFIG
 from icon_cli.config import Config
 from icon_cli.icx import Icx
 from icon_cli.utils import Utils

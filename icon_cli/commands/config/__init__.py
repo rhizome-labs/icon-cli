@@ -16,34 +16,6 @@ app.add_typer(keystore.app, name="keystore")
 
 
 @app.command()
-def mode() -> None:
-    """
-    Change the icon-cli mode between read-only and read/write modes.
-    """
-    # Read config.
-    config = Config.read_config()
-
-    # Prompt user to change to "rw" mode if current mode is "r".
-    if config.mode == "r":
-        mode_prompt = typer.confirm(
-            f"icon-cli is currently in read-only mode. Do you want to switch to read/write mode?"
-        )
-        if mode_prompt is True:
-            config.mode = "rw"
-            Config.write_config(config)
-            print(f"SUCCESS: icon-cli has been set to read/write mode.")
-    # Prompt user to change to "r" mode if current mode is "rw".
-    else:
-        mode_prompt = typer.confirm(
-            f"icon-cli is currently in read/write mode. Do you want to switch to read-only mode?"
-        )
-        if mode_prompt is True:
-            config.mode = "r"
-            Config.write_config(config)
-            print(f"SUCCESS: icon-cli has been set to read-only mode.")
-
-
-@app.command()
 def network(network: str = typer.Argument(...)) -> None:
     """
     Change the default network in config.yml
