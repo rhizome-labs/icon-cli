@@ -10,7 +10,7 @@ from icon_cli.commands.config import keystore
 from icon_cli.config import Config
 from icon_cli.utils import Utils
 
-app = typer.Typer()
+app = typer.Typer(help="Configure settings for icon-cli.")
 
 app.add_typer(keystore.app, name="keystore")
 

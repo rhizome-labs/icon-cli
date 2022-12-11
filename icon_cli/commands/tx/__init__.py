@@ -68,9 +68,8 @@ def call(
     )
 
     # Ask user for the method to call.
-    print("\n")
-    print(method_choices)
-    print("\n")
+    print(f"\nContract Address: {contract_address}\n")
+    print(f"{method_choices}\n")
     method_choice = typer.prompt(f"Enter the number of the method to call")
 
     try:
