@@ -4,6 +4,7 @@ import typer
 from rich import inspect, print
 
 from icon_cli import CONFIG
+from icon_cli.commands.tx import gov
 from icon_cli.config import Config
 from icon_cli.contracts import Contracts
 from icon_cli.icx import IcxTx
@@ -11,6 +12,8 @@ from icon_cli.utils import Utils
 from icon_cli.validators import Validators
 
 app = typer.Typer(help="Build and send ICX transactions.")
+
+app.add_typer(gov.app, name="gov")
 
 
 @app.command()
