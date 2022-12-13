@@ -4,43 +4,16 @@ import typer
 from rich import inspect, print
 
 from icon_cli import CONFIG
+from icon_cli.commands.tx import gov
 from icon_cli.config import Config
 from icon_cli.contracts import Contracts
 from icon_cli.icx import IcxTx
 from icon_cli.utils import Utils
 from icon_cli.validators import Validators
 
-app = typer.Typer()
+app = typer.Typer(help="Build and send ICX transactions.")
 
-
-@app.command()
-def send(
-    to_address: str = typer.Argument(
-        ...,
-        callback=Validators.validate_address,
-    ),
-    value: float = typer.Argument(...),
-    network: str = typer.Option(
-        Config.get_default_network(),
-        "--network",
-        "-n",
-        callback=Validators.validate_network,
-    ),
-    keystore_name: str = typer.Option(
-        Config.get_default_keystore(),
-        "--keystore",
-        "-k",
-    ),
-    keystore_password: str = typer.Option(
-        None,
-        "--password",
-        "-p",
-    ),
-):
-    icx = IcxTx(network, keystore_name, keystore_password)
-    tx = icx.build_transaction(to_address, value)
-    tx_hash = icx.send_transaction(tx)
-    print(tx_hash)
+app.add_typer(gov.app, name="gov")
 
 
 @app.command()
@@ -66,7 +39,11 @@ def call(
         "--password",
         "-p",
     ),
+    build_only: bool = False,
 ):
+    """
+    Make a smart contract call.
+    """
     # If contract address doesn't start with "cx", check if it's a known contract.
     if not contract_address.startswith("cx"):
         contract_address = Contracts.get_contract_address_from_name(
@@ -94,9 +71,8 @@ def call(
     )
 
     # Ask user for the method to call.
-    print("\n")
-    print(method_choices)
-    print("\n")
+    print(f"\nContract Address: {contract_address}\n")
+    print(f"{method_choices}\n")
     method_choice = typer.prompt(f"Enter the number of the method to call")
 
     try:
@@ -152,7 +128,52 @@ def call(
     inspect(tx)
     tx_confirmation = typer.confirm("Please confirm the transaction details")
 
+    # Proceed if user gives confirmation.
     if tx_confirmation:
+
+        # Return tx object if build_only is True.
+        if build_only is True:
+            return tx
+
         # Send transaction.
         tx_hash = icx.send_transaction(tx)
         print(tx_hash)
+
+
+@app.command()
+def send(
+    to_address: str = typer.Argument(
+        ...,
+        callback=Validators.validate_address,
+    ),
+    value: float = typer.Argument(...),
+    network: str = typer.Option(
+        Config.get_default_network(),
+        "--network",
+        "-n",
+        callback=Validators.validate_network,
+    ),
+    keystore_name: str = typer.Option(
+        Config.get_default_keystore(),
+        "--keystore",
+        "-k",
+    ),
+    keystore_password: str = typer.Option(
+        None,
+        "--password",
+        "-p",
+    ),
+    build_only: bool = False,
+):
+    """
+    Send an ICX transaction.
+    """
+    icx = IcxTx(network, keystore_name, keystore_password)
+    tx = icx.build_transaction(to_address, value)
+
+    # Return tx object if build_only is True.
+    if build_only is True:
+        return tx
+
+    tx_hash = icx.send_transaction(tx)
+    print(tx_hash)
